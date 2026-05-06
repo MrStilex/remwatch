@@ -1,0 +1,219 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 0;
+}
+
+.state {
+  color: #8892a4;
+  font-size: 13px;
+  padding: 24px 0;
+  text-align: center;
+}
+
+.stateErr {
+  color: #f87171;
+  font-size: 13px;
+  padding: 16px 0;
+}
+
+/* ── collapsible section ── */
+.section {
+  border-top: 1px solid #1a2235;
+}
+
+.section:first-child {
+  border-top: none;
+}
+
+.sectionToggle {
+  width: 100%;
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 2px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: #4b5563;
+  transition: color .15s;
+}
+
+.sectionToggle:hover {
+  color: #8892a4;
+}
+
+.chevron {
+  font-size: 12px;
+}
+
+.sectionBody {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 14px;
+}
+
+.subTitle {
+  font-size: 11px;
+  color: #374151;
+  margin-top: 4px;
+}
+
+/* ── stat cards ── */
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.stat {
+  background: #0a0f1a;
+  border: 1px solid #1e2736;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.statVal {
+  font-size: 22px;
+  font-weight: 700;
+  color: #e2e8f0;
+  line-height: 1;
+}
+
+.statLabel {
+  font-size: 11px;
+  color: #4b5563;
+}
+
+.green  { color: #22c55e; }
+.yellow { color: #facc15; }
+.muted  { color: #6b7280; }
+
+/* ── online ── */
+.onlineGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.onlineStat {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 12px;
+  background: #0a0f1a;
+  border: 1px solid #1e2736;
+  border-radius: 8px;
+}
+
+.onlineVal {
+  font-size: 18px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.onlineLabel {
+  font-size: 11px;
+  color: #4b5563;
+}
+
+/* ── nodes ── */
+.nodeList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nodeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #0a0f1a;
+  border: 1px solid #1e2736;
+  border-radius: 8px;
+  gap: 12px;
+}
+
+.nodeOffline { opacity: .5; }
+
+.nodeLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.nodeDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dotOnline  { background: #22c55e; box-shadow: 0 0 5px #22c55e88; }
+.dotOffline { background: #4b5563; }
+
+.nodeName {
+  font-size: 13px;
+  color: #e2e8f0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nodeRight {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.nodeUsers   { font-size: 13px; color: #60a5fa; white-space: nowrap; }
+.nodeTraffic { font-size: 12px; color: #4b5563; font-family: monospace; white-space: nowrap; }
+.offlineLabel { font-size: 12px; color: #4b5563; }
+
+/* ── system metrics ── */
+.sysGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.sysStat {
+  background: #0a0f1a;
+  border: 1px solid #1e2736;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sysLabel {
+  font-size: 11px;
+  color: #4b5563;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.sysSub {
+  font-size: 11px;
+  color: #374151;
+  font-family: monospace;
+  margin-top: 2px;
+}
+
+.pctOk     { font-size: 18px; font-weight: 600; color: #22c55e; }
+.pctWarn   { font-size: 18px; font-weight: 600; color: #facc15; }
+.pctDanger { font-size: 18px; font-weight: 600; color: #f87171; }
+.na        { font-size: 18px; font-weight: 600; color: #374151; }

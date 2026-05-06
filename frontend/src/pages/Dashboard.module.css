@@ -1,0 +1,171 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+/* ── add menu ── */
+.addWrap {
+  position: relative;
+}
+
+.addMenu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  background: #111827;
+  border: 1px solid #1e2736;
+  border-radius: 10px;
+  padding: 6px;
+  min-width: 240px;
+  z-index: 100;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.addMenuItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: background .12s;
+}
+
+.addMenuItem:hover:not(:disabled) {
+  background: #1a2235;
+}
+
+.addMenuItem:disabled {
+  opacity: .4;
+  cursor: default;
+}
+
+.addIcon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.addMenuLabel {
+  display: block;
+  font-size: 13px;
+  color: #e2e8f0;
+}
+
+.addMenuSub {
+  display: block;
+  font-size: 11px;
+  color: #4b5563;
+  margin-top: 1px;
+}
+
+.empty {
+  color: #8892a4;
+  padding: 48px 0;
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(560px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  background: #0f1623;
+  border: 1px solid #1e2736;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid #1e2736;
+}
+
+.cardMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cardType {
+  font-size: 14px;
+}
+
+.cardName {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.removeBtn {
+  background: none;
+  border: none;
+  color: #4b5563;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: color .15s, background .15s;
+}
+
+.removeBtn:hover {
+  color: #f87171;
+  background: #1f1f2e;
+}
+
+.cardBody {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.metaRow {
+  display: flex;
+  gap: 8px;
+  font-size: 13px;
+  align-items: baseline;
+}
+
+.metaKey {
+  color: #4b5563;
+  min-width: 100px;
+  flex-shrink: 0;
+}
+
+.metaVal {
+  color: #94a3b8;
+  word-break: break-all;
+}
+
+a.metaVal {
+  color: #60a5fa;
+  text-decoration: none;
+}
+
+a.metaVal:hover {
+  text-decoration: underline;
+}
+
+.placeholder {
+  margin-top: 8px;
+  padding: 24px;
+  border: 1px dashed #1e2736;
+  border-radius: 8px;
+  color: #374151;
+  font-size: 13px;
+  text-align: center;
+}

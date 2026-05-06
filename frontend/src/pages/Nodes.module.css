@@ -1,0 +1,204 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.settingsWrap {
+  position: relative;
+}
+
+.settingsBtn {
+  background: #1a2235;
+  border: 1px solid #1e2736;
+  color: #8892a4;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.settingsBtn:hover {
+  color: #e2e8f0;
+  background: #1e2a3a;
+}
+
+.settingsDropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  background: #111827;
+  border: 1px solid #1e2736;
+  border-radius: 8px;
+  padding: 8px 0;
+  min-width: 180px;
+  z-index: 100;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+.settingsTitle {
+  font-size: 11px;
+  color: #4b5563;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 4px 14px 8px;
+}
+
+.settingsRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 14px;
+  font-size: 13px;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.settingsRow:hover {
+  background: #1a2235;
+  color: #e2e8f0;
+}
+
+.settingsRow input[type="checkbox"] {
+  accent-color: #3b82f6;
+  cursor: pointer;
+}
+
+.hint {
+  color: #8892a4;
+}
+
+.error {
+  color: #f87171;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table th {
+  text-align: left;
+  padding: 10px 14px;
+  color: #8892a4;
+  font-weight: 500;
+  border-bottom: 1px solid #1e2736;
+  white-space: nowrap;
+}
+
+.thSortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.thSortable:hover {
+  color: #e2e8f0;
+}
+
+.sortIdle {
+  margin-left: 4px;
+  color: #2d3748;
+  font-size: 11px;
+}
+
+.sortActive {
+  margin-left: 4px;
+  color: #3b82f6;
+  font-size: 11px;
+}
+
+.table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #151d2b;
+  vertical-align: middle;
+}
+
+.table tbody tr:hover td {
+  background: #151d2b;
+}
+
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.online  { background: #22c55e; box-shadow: 0 0 6px #22c55e88; }
+.offline { background: #6b7280; }
+
+.name {
+  font-weight: 500;
+  color: #e2e8f0;
+}
+
+.nameLink {
+  cursor: pointer;
+}
+.nameLink:hover {
+  color: #60a5fa;
+  text-decoration: underline;
+}
+
+.mono {
+  font-family: monospace;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.errCount {
+  color: #f87171;
+  font-weight: 500;
+}
+
+.na { color: #374151; font-size: 13px; }
+
+.pctOk     { color: #22c55e; font-size: 13px; }
+.pctWarn   { color: #facc15; font-size: 13px; }
+.pctDanger { color: #f87171; font-size: 13px; font-weight: 500; }
+
+.sub {
+  display: block;
+  font-size: 11px;
+  color: #4b5563;
+  font-family: monospace;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+.deleteBtn {
+  background: none;
+  border: none;
+  color: #4b5563;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.deleteBtn:hover:not(:disabled) {
+  color: #f87171;
+  background: #1f1f2e;
+}
+
+.deleteBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

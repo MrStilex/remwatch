@@ -1,0 +1,79 @@
+data_dir: /var/lib/vector
+
+sources:
+  xray_log:
+    type: file
+    include:
+      - "/var/log/remnanode-supervisor/xray.out.log"
+      - "/var/log/remnanode/supervisor/xray.out.log"
+    read_from: "beginning"
+
+transforms:
+  parse_and_tag:
+    type: remap
+    inputs: ["xray_log"]
+    source: |
+      .node_name   = get_env_var!("NODE_NAME")
+      .node_ip     = get_env_var!("NODE_IP")
+      .country     = get_env_var!("COUNTRY")
+      .environment = get_env_var!("ENVIRONMENT")
+      .service     = "remnawave-node"
+      .log_type    = "xray_out"
+      .container   = "remnawave-node"
+
+      msg = downcase(string!(.message))
+
+      .is_xray = contains(msg, "proxy/") || contains(msg, "app/proxyman") ||
+        contains(msg, "app/dispatcher") || contains(msg, "transport/internet/tcp") ||
+        contains(msg, "common/mux") || contains(msg, " accepted tcp:") ||
+        contains(msg, " accepted udp:")
+
+      .is_noise = contains(msg, "received request") || contains(msg, "sniffed domain") ||
+        contains(msg, "default route") || contains(msg, "connection opened") ||
+        contains(msg, "connection ends > eof")
+
+      if contains(msg, "i/o timeout") || contains(msg, " timeout") {
+        .error_type = "timeout"
+      } else if contains(msg, "refused") || contains(msg, "econnrefused") {
+        .error_type = "connection_refused"
+      } else if contains(msg, "no such host") || (contains(msg, "dns") && contains(msg, "fail")) {
+        .error_type = "dns_error"
+      } else if contains(msg, "tls") || contains(msg, "x509") || contains(msg, "certificate") {
+        .error_type = "tls_error"
+      } else if contains(msg, "failed to read client hello") || contains(msg, "sni_mismatch") ||
+        (contains(msg, "reality") && contains(msg, "invalid")) {
+        .error_type = "reality_error"
+      } else if contains(msg, "failed to process outbound traffic") || contains(msg, "all retry attempts failed") {
+        .error_type = "outbound_error"
+      } else if contains(msg, "broken pipe") || contains(msg, "connection reset") || contains(msg, "reset by peer") {
+        .error_type = "connection_reset"
+      } else if contains(msg, "failed") || contains(msg, "error") {
+        .error_type = "other_error"
+      } else {
+        .error_type = "none"
+      }
+
+  keep_useful_xray:
+    type: filter
+    inputs: ["parse_and_tag"]
+    condition: |
+      .is_xray == true && .is_noise != true && .error_type != "none"
+
+sinks:
+  loki_out:
+    type: loki
+    inputs: ["keep_useful_xray"]
+    endpoint: "${LOKI_URL}"
+    compression: gzip
+    encoding:
+      codec: json
+    healthcheck:
+      enabled: false
+    labels:
+      node_name:   "{{ node_name }}"
+      country:     "{{ country }}"
+      service:     "{{ service }}"
+      log_type:    "{{ log_type }}"
+      environment: "{{ environment }}"
+      container:   "{{ container }}"
+      error_type:  "{{ error_type }}"

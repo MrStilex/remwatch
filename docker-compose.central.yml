@@ -1,0 +1,50 @@
+services:
+
+  loki:
+    image: grafana/loki:3.0.0
+    container_name: remwatch-loki
+    restart: unless-stopped
+    volumes:
+      - loki_data:/loki
+      - ./loki/config.yml:/etc/loki/config.yml:ro
+    command: -config.file=/etc/loki/config.yml
+    ports:
+      - "${LOKI_PORT}:3100"
+    networks:
+      - remwatch
+
+  backend:
+    build: ./backend
+    container_name: remwatch-backend
+    restart: unless-stopped
+    environment:
+      LOKI_URL: "http://loki:${LOKI_PORT}"
+      LOKI_TOKEN: "${LOKI_TOKEN}"
+      PORT: "${BACKEND_PORT}"
+    expose:
+      - "${BACKEND_PORT}"
+    depends_on:
+      - loki
+    networks:
+      - remwatch
+
+  frontend:
+    build: ./frontend
+    container_name: remwatch-frontend
+    restart: unless-stopped
+    environment:
+      DOMAIN: "${DOMAIN}"
+      BACKEND_PORT: "${BACKEND_PORT}"
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - remwatch
+
+volumes:
+  loki_data:
+
+networks:
+  remwatch:
+    driver: bridge

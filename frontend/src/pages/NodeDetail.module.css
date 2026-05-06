@@ -1,0 +1,182 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.back {
+  background: none;
+  border: 1px solid #1e2736;
+  border-radius: 6px;
+  color: #8892a4;
+  font-size: 13px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: color .15s, border-color .15s;
+  white-space: nowrap;
+}
+.back:hover { color: #e2e8f0; border-color: #374151; }
+
+.rangeBar {
+  display: flex;
+  gap: 4px;
+  background: #0a0f1a;
+  border: 1px solid #1e2736;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.rangeBtn {
+  background: none;
+  border: none;
+  border-radius: 5px;
+  color: #4b5563;
+  font-size: 13px;
+  padding: 5px 14px;
+  cursor: pointer;
+  transition: color .15s, background .15s;
+}
+.rangeBtn:hover { color: #8892a4; background: #111827; }
+.rangeBtnActive { background: #1a2235 !important; color: #e2e8f0 !important; }
+
+.hint { color: #8892a4; padding: 48px 0; text-align: center; }
+.err  { color: #f87171; }
+
+/* ── stat cards ── */
+.statsRow {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.statCard {
+  background: #0f1623;
+  border: 1px solid #1e2736;
+  border-radius: 10px;
+  padding: 14px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 120px;
+}
+
+.statVal   { font-size: 26px; font-weight: 700; line-height: 1; }
+.statLabel { font-size: 11px; color: #4b5563; }
+
+/* ── charts ── */
+.charts {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.chartCard {
+  background: #0f1623;
+  border: 1px solid #1e2736;
+  border-radius: 10px;
+  padding: 16px 16px 8px;
+}
+
+.chartCardPie {
+  min-width: 0;
+}
+
+.chartTitle {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: #4b5563;
+  margin-bottom: 8px;
+}
+
+/* ── legend ── */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #0f1623;
+  border: 1px solid #1e2736;
+  border-radius: 20px;
+  padding: 4px 12px 4px 8px;
+  font-size: 12px;
+}
+
+.legendDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legendLabel { color: #8892a4; }
+.legendCount { color: #e2e8f0; font-weight: 600; margin-left: 4px; }
+
+/* ── no errors ── */
+.noErrors {
+  text-align: center;
+  padding: 80px 0;
+  color: #4b5563;
+}
+.noErrorsIcon {
+  font-size: 48px;
+  color: #22c55e;
+  margin-bottom: 12px;
+}
+
+/* ── recent errors ── */
+.recentCard {
+  background: #0f1623;
+  border: 1px solid #1e2736;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.recentTitle {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: #4b5563;
+  padding: 14px 16px;
+  border-bottom: 1px solid #1e2736;
+}
+
+.recentList {
+  font-family: monospace;
+  font-size: 12px;
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.recentRow {
+  display: grid;
+  grid-template-columns: 70px 130px 1fr;
+  gap: 12px;
+  padding: 6px 16px;
+  border-bottom: 1px solid #080d16;
+  align-items: start;
+}
+.recentRow:hover { background: #111827; }
+
+.recentTs   { color: #374151; white-space: nowrap; }
+.recentType { white-space: nowrap; font-weight: 500; }
+.recentMsg  { color: #94a3b8; word-break: break-all; }

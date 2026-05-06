@@ -1,0 +1,48 @@
+data_dir: /var/lib/vector
+
+sources:
+  docker:
+    type: docker_logs
+    exclude_containers:
+      - "remwatch-vector-panel"
+      - "remwatch-node-exporter"
+
+transforms:
+  tag:
+    type: remap
+    inputs: ["docker"]
+    source: |
+      .node_name = get_env_var!("PANEL_NAME")
+      .node_ip   = get_env_var!("NODE_IP")
+      .country   = get_env_var!("COUNTRY")
+      .service   = "remnawave-panel"
+      .container = to_string!(.container_name)
+
+      # Strip ANSI escape codes
+      .message = replace(to_string!(.message), r'\x1b\[[0-9;]*[A-Za-z]', "")
+
+      msg = downcase(.message)
+      if contains(msg, "error") {
+        .error_type = "error"
+      } else if contains(msg, "warn") {
+        .error_type = "warn"
+      } else {
+        .error_type = "none"
+      }
+
+sinks:
+  loki_out:
+    type: loki
+    inputs: ["tag"]
+    endpoint: "${LOKI_URL}"
+    compression: gzip
+    encoding:
+      codec: json
+    healthcheck:
+      enabled: false
+    labels:
+      node_name:  "{{ node_name }}"
+      country:    "{{ country }}"
+      service:    "{{ service }}"
+      container:  "{{ container }}"
+      error_type: "{{ error_type }}"
