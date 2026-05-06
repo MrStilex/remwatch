@@ -41,14 +41,32 @@ if [ -n "$CONFLICT" ]; then
   if [ "$CONFLICT" = "systemd" ]; then
     systemctl stop vector    2>/dev/null || true
     systemctl disable vector 2>/dev/null || true
-  elif [ "$CONFLICT" = "docker" ]; then
-    docker stop remwatch-vector       2>/dev/null || true
-    docker rm   remwatch-vector       2>/dev/null || true
-    docker stop remwatch-node-exporter 2>/dev/null || true
-    docker rm   remwatch-node-exporter 2>/dev/null || true
   fi
 
+  docker stop remwatch-vector        2>/dev/null || true
+  docker rm   remwatch-vector        2>/dev/null || true
+  docker stop remwatch-node-exporter 2>/dev/null || true
+  docker rm   remwatch-node-exporter 2>/dev/null || true
+
   info "Старые контейнеры удалены."
+fi
+
+# ─── проверка node-exporter ───────────────────────────────────────────────────
+EXPORTER_PROFILE=""
+if curl -sf --max-time 3 "http://localhost:9100/metrics" >/dev/null 2>&1; then
+  info "Node Exporter уже работает на порту 9100 ✓ (используем существующий)"
+else
+  # Порт занят чем-то другим — освободить
+  if ss -tlnp 2>/dev/null | grep -q ':9100 '; then
+    warn "Порт 9100 занят. Освобождаю..."
+    systemctl stop node_exporter    2>/dev/null || true
+    systemctl disable node_exporter 2>/dev/null || true
+    PORT_PID=$(ss -tlnp 2>/dev/null | grep ':9100 ' | grep -oP 'pid=\K[0-9]+' | head -1)
+    [ -n "$PORT_PID" ] && kill -9 "$PORT_PID" 2>/dev/null || true
+    sleep 1
+  fi
+  EXPORTER_PROFILE="--profile with-exporter"
+  info "Будет установлен Node Exporter."
 fi
 
 # ─── установка ────────────────────────────────────────────────────────────────
@@ -65,10 +83,11 @@ COUNTRY=${COUNTRY}
 ENVIRONMENT=production
 EOF
 
-info "Запускаю Vector и Node Exporter..."
-docker compose up -d
+info "Запускаю агент..."
+# shellcheck disable=SC2086
+docker compose $EXPORTER_PROFILE up -d
 
-# ─── проверка доставки логов ───────────────────────────────────────────────────
+# ─── проверка ─────────────────────────────────────────────────────────────────
 echo ""
 info "Жду запуска контейнеров (10 сек)..."
 sleep 10
@@ -80,11 +99,10 @@ else
   warn "Логи: docker logs remwatch-vector"
 fi
 
-if docker ps --format '{{.Names}}' | grep -q "remwatch-node-exporter"; then
-  info "Node Exporter запущен ✓  (порт 9100)"
+if curl -sf --max-time 3 "http://localhost:9100/metrics" >/dev/null 2>&1; then
+  info "Node Exporter доступен на порту 9100 ✓"
 else
-  warn "Node Exporter не запустился."
-  warn "Логи: docker logs remwatch-node-exporter"
+  warn "Node Exporter недоступен на порту 9100."
 fi
 
 LOKI_RESP=$(curl -s --max-time 5 \

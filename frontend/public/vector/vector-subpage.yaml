@@ -1,0 +1,37 @@
+sources:
+  docker_logs:
+    type: docker_logs
+    include_containers:
+      - remnawave-subscription-page
+
+transforms:
+  clean:
+    type: remap
+    inputs: [docker_logs]
+    source: |
+      # Strip ANSI color codes
+      .message = replace(string!(.message), r'\x1b\[[0-9;]*m', "")
+      .message = strip_whitespace(.message)
+
+      # Classify log level
+      if contains(.message, "ERROR") {
+        .level = "error"
+      } else if contains(.message, "WARN") {
+        .level = "warn"
+      } else {
+        .level = "info"
+      }
+
+      .service_name = "${SERVICE_NAME}"
+
+sinks:
+  loki:
+    type: loki
+    inputs: [clean]
+    endpoint: "${LOKI_URL}"
+    encoding:
+      codec: json
+    labels:
+      service_name: "{{ service_name }}"
+      level: "{{ level }}"
+      service_type: "subpage"

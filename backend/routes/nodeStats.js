@@ -38,7 +38,7 @@ export default async function nodeStatsRoute(fastify) {
           start, end, stepSec,
         ).then(streams => ({
           error_type: et,
-          values: streams[0]?.values?.map(([ts, v]) => [Math.floor(Number(ts) / 1e6), Number(v)]) ?? [],
+          values: streams[0]?.values?.map(([ts, v]) => [Number(ts) * 1000, Number(v)]) ?? [],
         }))
       )
     )

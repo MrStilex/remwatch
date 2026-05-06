@@ -3,22 +3,18 @@ import styles from './AddNodeModal.module.css'
 import panelStyles from './AddLogsModal.module.css'
 import { copyText } from '../utils/clipboard'
 
-export default function AddLogsModal({ onClose, onSave }) {
-  const [name,      setName]      = useState('')
-  const [panelName, setPanelName] = useState('')
-  const [nodeIp,    setNodeIp]    = useState('')
-  const [country,   setCountry]   = useState('')
-  const [copied,    setCopied]    = useState(false)
-  const [error,     setError]     = useState('')
+export default function AddSubpageModal({ onClose, onSave }) {
+  const [name,        setName]        = useState('')
+  const [serviceName, setServiceName] = useState('subscription-page')
+  const [copied,      setCopied]      = useState(false)
+  const [error,       setError]       = useState('')
 
-  const origin   = window.location.origin
-  const lokiUrl  = `http://${window.location.hostname}:3100`
+  const origin  = window.location.origin
+  const lokiUrl = `http://${window.location.hostname}:3100`
 
   const cmd = [
-    `curl -fsSL ${origin}/panel-install.sh`,
-    `| PANEL_NAME="${panelName || 'main-panel'}"`,
-    `NODE_IP="${nodeIp || '1.2.3.4'}"`,
-    `COUNTRY="${country || 'XX'}"`,
+    `curl -fsSL ${origin}/subpage-install.sh`,
+    `| SERVICE_NAME="${serviceName || 'subscription-page'}"`,
     `LOKI_URL="${lokiUrl}"`,
     `REMWATCH_URL="${origin}"`,
     `bash`,
@@ -30,12 +26,16 @@ export default function AddLogsModal({ onClose, onSave }) {
     setTimeout(() => setCopied(false), 2000)
   }
 
-
   function submit(e) {
     e.preventDefault()
-    if (!panelName.trim()) { setError('Имя панели обязательно'); return }
+    if (!serviceName.trim()) { setError('Имя сервиса обязательно'); return }
     const id = Date.now().toString(36) + Math.random().toString(36).slice(2)
-    onSave({ id, type: 'logs', name: name.trim() || panelName.trim(), panel_name: panelName.trim() })
+    onSave({
+      id,
+      type: 'subpage',
+      name: name.trim() || serviceName.trim(),
+      service_name: serviceName.trim(),
+    })
     onClose()
   }
 
@@ -43,50 +43,22 @@ export default function AddLogsModal({ onClose, onSave }) {
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={e => e.stopPropagation()}>
         <div className={styles.header}>
-          <h2>Логи панели</h2>
+          <h2>Логи страницы подписки</h2>
           <button className={styles.close} onClick={onClose}>✕</button>
         </div>
 
         <form className={panelStyles.body} onSubmit={submit}>
-          <div className={panelStyles.row}>
-            <div className={panelStyles.field}>
-              <label className={styles.label}>
-                Имя панели
-                <span className={styles.hint}>задаётся при установке (PANEL_NAME)</span>
-              </label>
-              <input
-                className={styles.input}
-                placeholder="main-panel"
-                value={panelName}
-                onChange={e => setPanelName(e.target.value)}
-                autoFocus
-              />
-            </div>
-            <div className={panelStyles.field}>
-              <label className={styles.label}>
-                Код страны
-                <span className={styles.hint}>ISO двухбуквенный</span>
-              </label>
-              <input
-                className={styles.input}
-                placeholder="RU"
-                maxLength={2}
-                value={country}
-                onChange={e => setCountry(e.target.value.toUpperCase())}
-              />
-            </div>
-          </div>
-
           <div className={panelStyles.field}>
             <label className={styles.label}>
-              IP сервера панели
-              <span className={styles.hint}>внешний IP где стоит Remnawave</span>
+              Имя сервиса
+              <span className={styles.hint}>задаётся при установке (SERVICE_NAME)</span>
             </label>
             <input
               className={styles.input}
-              placeholder="188.208.103.117"
-              value={nodeIp}
-              onChange={e => setNodeIp(e.target.value)}
+              placeholder="subscription-page"
+              value={serviceName}
+              onChange={e => setServiceName(e.target.value)}
+              autoFocus
             />
           </div>
 
@@ -97,7 +69,7 @@ export default function AddLogsModal({ onClose, onSave }) {
             </label>
             <input
               className={styles.input}
-              placeholder="Мой сервер"
+              placeholder="Страница подписки"
               value={name}
               onChange={e => setName(e.target.value)}
             />
@@ -106,7 +78,7 @@ export default function AddLogsModal({ onClose, onSave }) {
           <div className={panelStyles.field} style={{ marginTop: 4 }}>
             <label className={styles.label}>
               Команда установки
-              <span className={styles.hint}>вставь в терминал на сервере с Remnawave</span>
+              <span className={styles.hint}>вставь в терминал на сервере со страницей подписки</span>
             </label>
             <div className={styles.cmdBox}>
               <code className={styles.cmd}>{cmd}</code>
@@ -117,7 +89,7 @@ export default function AddLogsModal({ onClose, onSave }) {
           </div>
 
           <p className={styles.note}>
-            Устанавливает Vector (читает docker-логи) и Node Exporter на сервер с Remnawave.
+            Устанавливает Vector на сервер со страницей подписки.
             Логи появятся в карточке через ~минуту после запуска.
           </p>
 

@@ -202,3 +202,6 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+.net  { white-space: nowrap; }
+.unit { color: #4b5563; font-size: 11px; }

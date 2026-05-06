@@ -2,11 +2,16 @@ data_dir: /var/lib/vector
 
 sources:
   xray_log:
-    type: file
-    include:
-      - "/var/log/remnanode-supervisor/xray.out.log"
-      - "/var/log/remnanode/supervisor/xray.out.log"
-    read_from: "beginning"
+    type: docker_logs
+    include_containers:
+      - "remnanode"
+
+  heartbeat:
+    type: exec
+    mode: scheduled
+    scheduled:
+      exec_interval_secs: 300
+    command: ["sh", "-c", "echo heartbeat"]
 
 transforms:
   parse_and_tag:
@@ -59,10 +64,24 @@ transforms:
     condition: |
       .is_xray == true && .is_noise != true && .error_type != "none"
 
+  tag_heartbeat:
+    type: remap
+    inputs: ["heartbeat"]
+    source: |
+      .node_name   = get_env_var!("NODE_NAME")
+      .node_ip     = get_env_var!("NODE_IP")
+      .country     = get_env_var!("COUNTRY")
+      .environment = get_env_var!("ENVIRONMENT")
+      .service     = "remnawave-node"
+      .log_type    = "heartbeat"
+      .container   = "remnawave-node"
+      .error_type  = "heartbeat"
+      .message     = "heartbeat"
+
 sinks:
   loki_out:
     type: loki
-    inputs: ["keep_useful_xray"]
+    inputs: ["keep_useful_xray", "tag_heartbeat"]
     endpoint: "${LOKI_URL}"
     compression: gzip
     encoding:

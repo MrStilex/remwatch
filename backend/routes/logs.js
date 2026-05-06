@@ -3,10 +3,13 @@ import { LOKI_URL } from '../index.js'
 export default async function logsRoute(fastify) {
   fastify.get('/logs', async (req, reply) => {
     const {
-      node = '',
-      search = '',
-      limit = '100',
-      since = '1h',
+      node         = '',
+      service_name = '',
+      search       = '',
+      limit        = '100',
+      since        = '1h',
+      error_type   = '',
+      level        = '',
     } = req.query
 
     const now = Math.floor(Date.now() / 1000)
@@ -18,7 +21,15 @@ export default async function logsRoute(fastify) {
         ? Number(minutesMatch[1]) * 60
         : 3600
 
-    let query = node ? `{node_name="${node}"}` : `{node_name=~".+"}`
+    let selector
+    if (service_name) {
+      selector = `service_name="${service_name}"`
+      if (level) selector += `,level="${level}"`
+    } else {
+      selector = node ? `node_name="${node}"` : `node_name=~".+"`
+      if (error_type) selector += `,error_type="${error_type}"`
+    }
+    let query = `{${selector}}`
     if (search) query += ` |= "${search.replace(/"/g, '\\"')}"`
 
     const body = new URLSearchParams({
@@ -50,11 +61,13 @@ export default async function logsRoute(fastify) {
         try { parsed = JSON.parse(line) } catch {}
         return {
           ts: new Date(Number(tsNano) / 1e6).toISOString(),
-          node_name:  stream.labels?.node_name  ?? parsed.node_name  ?? '',
-          country:    stream.labels?.country    ?? parsed.country    ?? '',
-          container:  stream.labels?.container  ?? parsed.container  ?? '',
-          error_type: parsed.error_type ?? 'none',
-          message:    parsed.message ?? line,
+          node_name:    stream.labels?.node_name    ?? parsed.node_name    ?? '',
+          service_name: stream.labels?.service_name ?? parsed.service_name ?? '',
+          level:        stream.labels?.level        ?? 'info',
+          country:      stream.labels?.country      ?? parsed.country      ?? '',
+          container:    stream.labels?.container    ?? parsed.container    ?? '',
+          error_type:   parsed.error_type ?? 'none',
+          message:      parsed.message ?? line,
         }
       })
     )

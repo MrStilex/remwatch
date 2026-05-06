@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
-import AddPanelModal from '../components/AddPanelModal'
-import AddLogsModal  from '../components/AddLogsModal'
-import PanelMetrics  from '../components/PanelMetrics'
-import PanelLogs     from '../components/PanelLogs'
+import AddPanelModal    from '../components/AddPanelModal'
+import AddLogsModal     from '../components/AddLogsModal'
+import AddSubpageModal  from '../components/AddSubpageModal'
+import PanelMetrics     from '../components/PanelMetrics'
+import PanelLogs        from '../components/PanelLogs'
+import SubpageLogs      from '../components/SubpageLogs'
 import styles from './Dashboard.module.css'
 
 function usePanels() {
@@ -61,11 +63,11 @@ function AddMenu({ onSelect }) {
               <span className={styles.addMenuSub}>Ошибки и события в реальном времени</span>
             </span>
           </button>
-          <button className={styles.addMenuItem} disabled>
+          <button className={styles.addMenuItem} onClick={() => pick('subpage')}>
             <span className={styles.addIcon}>🌐</span>
             <span>
               <span className={styles.addMenuLabel}>Логи страницы подписки</span>
-              <span className={styles.addMenuSub}>Скоро</span>
+              <span className={styles.addMenuSub}>Ошибки и события подписок</span>
             </span>
           </button>
         </div>
@@ -87,10 +89,9 @@ function PanelCard({ panel, onRemove }) {
         <button className={styles.removeBtn} onClick={() => onRemove(panel.id)} title="Удалить панель">✕</button>
       </div>
       <div className={styles.cardBody}>
-        {panel.type === 'logs'
-          ? <PanelLogs    panel={panel} />
-          : <PanelMetrics panel={panel} />
-        }
+        {panel.type === 'logs'    && <PanelLogs    panel={panel} />}
+        {panel.type === 'subpage' && <SubpageLogs  panel={panel} />}
+        {panel.type === 'metrics' && <PanelMetrics panel={panel} />}
       </div>
     </div>
   )
@@ -124,6 +125,9 @@ export default function Dashboard() {
       )}
       {modal === 'logs' && (
         <AddLogsModal onClose={() => setModal(null)} onSave={p => { add(p); setModal(null) }} />
+      )}
+      {modal === 'subpage' && (
+        <AddSubpageModal onClose={() => setModal(null)} onSave={p => { add(p); setModal(null) }} />
       )}
     </main>
   )

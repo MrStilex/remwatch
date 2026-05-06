@@ -1,0 +1,14 @@
+services:
+
+  vector:
+    image: timberio/vector:0.40.0-alpine
+    container_name: remwatch-vector-subpage
+    restart: unless-stopped
+    environment:
+      LOKI_URL: "${LOKI_URL}"
+      SERVICE_NAME: "${SERVICE_NAME}"
+    volumes:
+      - ./vector/vector-subpage.yaml:/etc/vector/vector.yaml:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: ["--config", "/etc/vector/vector.yaml"]
+

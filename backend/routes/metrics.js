@@ -109,21 +109,28 @@ export default async function metricsRoute(fastify) {
 
     let text
     try {
-      const res = await fetch(`${url}/metrics`, {
+      const base = url.replace(/\/metrics\/?$/, '')
+      const fetchUrl = `${base}/metrics`
+      fastify.log.info({ fetchUrl }, 'fetching metrics')
+      const res = await fetch(fetchUrl, {
         headers: auth ? { Authorization: auth } : {},
         signal: AbortSignal.timeout(8000),
       })
       if (!res.ok) {
+        fastify.log.warn({ fetchUrl, base, status: res.status }, 'upstream error')
         reply.status(502)
         return { error: `upstream ${res.status}` }
       }
       text = await res.text()
+      fastify.log.info({ fetchUrl, bytes: text.length, lines: text.split('\n').length }, 'metrics fetched')
     } catch (e) {
+      fastify.log.error({ url, err: e.message }, 'fetch failed')
       reply.status(502)
       return { error: e.message }
     }
 
     const built = buildResponse(parsePrometheus(text))
+    fastify.log.info({ users: built.users, nodesCount: built.nodes.length }, 'parsed metrics')
 
     let system = null
     try {

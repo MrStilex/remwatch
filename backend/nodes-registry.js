@@ -1,0 +1,53 @@
+import { readFileSync, writeFileSync, mkdirSync } from 'fs'
+import { join } from 'path'
+
+const DIR  = './data'
+const FILE = join(DIR, 'nodes-registry.json')
+
+function load() {
+  try { return JSON.parse(readFileSync(FILE, 'utf8')) }
+  catch { return [] }
+}
+
+function save(nodes) {
+  mkdirSync(DIR, { recursive: true })
+  writeFileSync(FILE, JSON.stringify(nodes, null, 2))
+}
+
+function genId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2)
+}
+
+export function getAll() { return load() }
+
+export function addNode({ name, node_ip, country }) {
+  const nodes = load()
+  const node  = { id: genId(), name, node_ip: node_ip || null, country: country || '' }
+  nodes.push(node)
+  save(nodes)
+  return node
+}
+
+export function removeNode(id) {
+  save(load().filter(n => n.id !== id))
+}
+
+export function getById(id) {
+  return load().find(n => n.id === id) ?? null
+}
+
+// Сохранить IP обнаруженный из Loki (для автомигрированных нод без IP)
+export function patchNodeIp(id, node_ip) {
+  const nodes = load()
+  const node  = nodes.find(n => n.id === id)
+  if (node && !node.node_ip && node_ip) {
+    node.node_ip = node_ip
+    save(nodes)
+  }
+}
+
+// При первом запуске засеять из существующих имён Loki
+export function seedIfEmpty(names) {
+  if (load().length > 0) return
+  save(names.map(name => ({ id: genId(), name, node_ip: null, country: '' })))
+}

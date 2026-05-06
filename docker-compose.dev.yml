@@ -1,0 +1,59 @@
+services:
+
+  loki:
+    image: grafana/loki:3.0.0
+    container_name: remwatch-dev-loki
+    restart: unless-stopped
+    volumes:
+      - loki_dev_data:/loki
+      - ./loki/config.yml:/etc/loki/config.yml:ro
+    command: -config.file=/etc/loki/config.yml
+    ports:
+      - "3100:3100"
+    networks:
+      - remwatch-dev
+
+  backend:
+    image: node:22-alpine
+    container_name: remwatch-dev-backend
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+    command: sh -c "npm install && node --watch index.js"
+    environment:
+      LOKI_URL: "http://loki:3100"
+      LOKI_TOKEN: "${LOKI_TOKEN:-}"
+      PORT: "3000"
+      JWT_SECRET: "${JWT_SECRET}"
+      ADMIN_PASSWORD_HASH: "${ADMIN_PASSWORD_HASH}"
+    expose:
+      - "3000"
+    depends_on:
+      - loki
+    networks:
+      - remwatch-dev
+
+  frontend:
+    image: node:20-alpine
+    container_name: remwatch-dev-frontend
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    command: sh -c "npm install && npx vite --host 0.0.0.0"
+    environment:
+      VITE_PROXY_TARGET: "http://backend:3000"
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    networks:
+      - remwatch-dev
+
+volumes:
+  loki_dev_data:
+
+networks:
+  remwatch-dev:
+    driver: bridge

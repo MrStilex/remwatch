@@ -32,8 +32,8 @@ export default function AddPanelModal({ onClose, onSave }) {
           </label>
 
           <label className={styles.label}>
-            URL <span className={styles.hint}>адрес панели метрик</span>
-            <input className={styles.input} placeholder="http://example.com:3001" value={url} onChange={e => setUrl(e.target.value)} />
+            URL <span className={styles.hint}>адрес + порт метрик, без /metrics</span>
+            <input className={styles.input} placeholder="http://1.2.3.4:3001" value={url} onChange={e => setUrl(e.target.value)} />
           </label>
 
           <div className={styles.row}>

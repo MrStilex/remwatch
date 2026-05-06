@@ -13,6 +13,8 @@ const COLUMNS = [
   { key: 'cpu',       label: 'CPU' },
   { key: 'ram',       label: 'RAM' },
   { key: 'disk',      label: 'Disk' },
+  { key: 'net_rx',    label: 'DOWNL' },
+  { key: 'net_tx',    label: 'UPL' },
   { key: 'errors',    label: 'Ошибок / 1ч' },
   { key: 'last_seen', label: 'Посл. лог' },
 ]
@@ -34,6 +36,13 @@ function timeSince(iso) {
   if (diff < 3600) return `${Math.floor(diff / 60)}м назад`
   if (diff < 86400) return `${Math.floor(diff / 3600)}ч назад`
   return `${Math.floor(diff / 86400)}д назад`
+}
+
+function fmtBps(bps) {
+  if (bps == null) return <span className={styles.na}>—</span>
+  if (bps >= 1e9)  return <span>{(bps / 1e9).toFixed(2)} <span className={styles.unit}>Гб/с</span></span>
+  if (bps >= 1e6)  return <span>{(bps / 1e6).toFixed(2)} <span className={styles.unit}>Мб/с</span></span>
+  return <span>{(bps / 1e3).toFixed(1)} <span className={styles.unit}>Кб/с</span></span>
 }
 
 function Pct({ pct, warn = 70, danger = 90 }) {
@@ -64,6 +73,8 @@ function sortNodes(nodes, col, dir) {
         av = a.disk_total ? a.disk_used / a.disk_total : -1
         bv = b.disk_total ? b.disk_used / b.disk_total : -1
         break
+      case 'net_rx':    av = a.net_rx_bps ?? -1; bv = b.net_rx_bps ?? -1; break
+      case 'net_tx':    av = a.net_tx_bps ?? -1; bv = b.net_tx_bps ?? -1; break
       case 'errors':    av = a.errors_1h ?? 0; bv = b.errors_1h ?? 0; break
       case 'last_seen': av = a.last_seen ?? ''; bv = b.last_seen ?? ''; break
       default: return 0
@@ -94,7 +105,7 @@ export default function Nodes() {
 
   async function load() {
     try {
-      const res = await fetch(`${API}/nodes`)
+      const res = await fetch(`${API}/nodes`, { credentials: 'include' })
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       setNodes(await res.json())
       setError(null)
@@ -105,11 +116,14 @@ export default function Nodes() {
     }
   }
 
-  async function deleteNode(name) {
-    if (!confirm(`Удалить ноду «${name}» и все её логи из Loki?`)) return
-    setDeleting(name)
+  async function deleteNode(node) {
+    if (!confirm(`Удалить ноду «${node.name}» и все её логи из Loki?`)) return
+    setDeleting(node.id)
     try {
-      const res = await fetch(`${API}/nodes/${encodeURIComponent(name)}`, { method: 'DELETE' })
+      const res = await fetch(`${API}/nodes/${encodeURIComponent(node.id)}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       await load()
     } catch (e) {
@@ -213,6 +227,8 @@ export default function Nodes() {
                 {visible.cpu       && <Th col="cpu">CPU</Th>}
                 {visible.ram       && <Th col="ram">RAM</Th>}
                 {visible.disk      && <Th col="disk">Disk</Th>}
+                {visible.net_rx    && <Th col="net_rx">DOWNL</Th>}
+                {visible.net_tx    && <Th col="net_tx">UPL</Th>}
                 {visible.errors    && <Th col="errors">Ошибок / 1ч</Th>}
                 {visible.last_seen && <Th col="last_seen">Посл. лог</Th>}
                 <th></th>
@@ -241,15 +257,17 @@ export default function Nodes() {
                     {visible.cpu       && <td><Pct pct={n.cpu_percent} /></td>}
                     {visible.ram       && <td><Pct pct={ramPct} /></td>}
                     {visible.disk      && <td><Pct pct={diskPct} warn={80} danger={90} /></td>}
+                    {visible.net_rx    && <td className={styles.net}>{fmtBps(n.net_rx_bps)}</td>}
+                    {visible.net_tx    && <td className={styles.net}>{fmtBps(n.net_tx_bps)}</td>}
                     {visible.errors    && <td className={n.errors_1h > 0 ? styles.errCount : ''}>{n.errors_1h}</td>}
                     {visible.last_seen && <td className={styles.mono}>{timeSince(n.last_seen)}</td>}
                     <td>
                       <button
                         className={styles.deleteBtn}
-                        onClick={() => deleteNode(n.name)}
-                        disabled={deleting === n.name}
+                        onClick={() => deleteNode(n)}
+                        disabled={deleting === n.id}
                         title="Удалить ноду и все её логи"
-                      >{deleting === n.name ? '...' : '✕'}</button>
+                      >{deleting === n.id ? '...' : '✕'}</button>
                     </td>
                   </tr>
                 )
@@ -259,7 +277,12 @@ export default function Nodes() {
         </div>
       )}
 
-      {showModal && <AddNodeModal onClose={() => setShowModal(false)} />}
+      {showModal && (
+        <AddNodeModal
+          onClose={() => setShowModal(false)}
+          onAdded={load}
+        />
+      )}
     </main>
   )
 }

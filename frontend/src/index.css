@@ -66,3 +66,17 @@ body {
   transition: background 0.15s;
 }
 .btn-primary:hover { background: #254d3d; }
+
+.sidebar-logout {
+  margin-top: auto;
+  background: none;
+  border: 1px solid #2d3148;
+  border-radius: 6px;
+  color: #4b5563;
+  font-size: 13px;
+  padding: 7px 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: color .15s, border-color .15s;
+}
+.sidebar-logout:hover { color: #f87171; border-color: #f8717140; }

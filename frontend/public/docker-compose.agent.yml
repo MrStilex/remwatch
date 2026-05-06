@@ -12,7 +12,7 @@ services:
       ENVIRONMENT: "${ENVIRONMENT:-production}"
     volumes:
       - ./vector/vector.yaml:/etc/vector/vector.yaml:ro
-      - /var/log:/var/log:ro
+      - /var/run/docker.sock:/var/run/docker.sock
     command: ["--config", "/etc/vector/vector.yaml"]
     networks:
       - remwatch
@@ -21,7 +21,9 @@ services:
     image: prom/node-exporter:latest
     container_name: remwatch-node-exporter
     restart: unless-stopped
+    profiles: ["with-exporter"]
     pid: host
+    network_mode: host
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
@@ -30,11 +32,8 @@ services:
       - '--path.procfs=/host/proc'
       - '--path.rootfs=/rootfs'
       - '--path.sysfs=/host/sys'
+      - '--web.listen-address=:9100'
       - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
-    ports:
-      - "9100:9100"
-    networks:
-      - remwatch
 
 networks:
   remwatch:

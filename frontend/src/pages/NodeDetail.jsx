@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import ReactECharts from 'echarts-for-react'
 import styles from './NodeDetail.module.css'
+import { copyText } from '../utils/clipboard'
 
 const API = import.meta.env.VITE_API_URL ?? '/api'
 
@@ -46,6 +47,59 @@ function fmtAxisTime(ts, hours) {
   return d.toLocaleDateString('ru-RU', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
+function ErrorLogsModal({ node, errorType, label, hours, onClose }) {
+  const [logs, setLogs]       = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [copied, setCopied]   = useState(false)
+  const preRef = useRef(null)
+
+  useEffect(() => {
+    const since = hours <= 1 ? '1h' : hours <= 6 ? '6h' : hours <= 24 ? '24h' : `${hours}h`
+    fetch(`${API}/logs?node=${encodeURIComponent(node)}&error_type=${encodeURIComponent(errorType)}&limit=30&since=${since}`)
+      .then(r => r.json())
+      .then(data => { setLogs(Array.isArray(data) ? data : []); setLoading(false) })
+      .catch(() => { setLogs([]); setLoading(false) })
+  }, [node, errorType, hours])
+
+  function copyAll() {
+    if (!logs?.length) return
+    const text = logs.map(e => `${e.ts}  ${e.message}`).join('\n')
+    copyText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div className={styles.modalOverlay} onClick={onClose}>
+      <div className={styles.modal} onClick={e => e.stopPropagation()}>
+        <div className={styles.modalHeader}>
+          <div className={styles.modalTitle}>
+            <span className={styles.modalDot} style={{ background: ERROR_COLORS[errorType] }} />
+            {label}
+            <span className={styles.modalSub}>последние 30 событий</span>
+          </div>
+          <div className={styles.modalActions}>
+            <button className={styles.copyBtn} onClick={copyAll} disabled={!logs?.length}>
+              {copied ? '✓ Скопировано' : 'Копировать'}
+            </button>
+            <button className={styles.closeBtn} onClick={onClose}>✕</button>
+          </div>
+        </div>
+        <div className={styles.modalBody} ref={preRef}>
+          {loading && <p className={styles.modalHint}>Загрузка...</p>}
+          {!loading && !logs?.length && <p className={styles.modalHint}>Нет записей</p>}
+          {logs?.map((e, i) => (
+            <div key={i} className={styles.modalRow}>
+              <span className={styles.modalTs}>{new Date(e.ts).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+              <span className={styles.modalMsg}>{e.message}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function NodeDetail() {
   const { name } = useParams()
   const navigate = useNavigate()
@@ -53,6 +107,7 @@ export default function NodeDetail() {
   const [data, setData]     = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError]   = useState(null)
+  const [errorModal, setErrorModal] = useState(null) // { errorType, label }
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -249,11 +304,16 @@ export default function NodeDetail() {
               {/* Легенда типов */}
               <div className={styles.legend}>
                 {data.totals.map(t => (
-                  <div key={t.error_type} className={styles.legendItem}>
+                  <button
+                    key={t.error_type}
+                    className={styles.legendItem}
+                    onClick={() => setErrorModal({ errorType: t.error_type, label: ERROR_LABELS[t.error_type] ?? t.error_type })}
+                    title="Показать последние события"
+                  >
                     <span className={styles.legendDot} style={{ background: ERROR_COLORS[t.error_type] }} />
                     <span className={styles.legendLabel}>{ERROR_LABELS[t.error_type] ?? t.error_type}</span>
                     <span className={styles.legendCount}>{t.total.toLocaleString()}</span>
-                  </div>
+                  </button>
                 ))}
               </div>
 
@@ -280,6 +340,15 @@ export default function NodeDetail() {
             </>
           )}
         </>
+      )}
+      {errorModal && (
+        <ErrorLogsModal
+          node={name}
+          errorType={errorModal.errorType}
+          label={errorModal.label}
+          hours={hours}
+          onClose={() => setErrorModal(null)}
+        />
       )}
     </main>
   )

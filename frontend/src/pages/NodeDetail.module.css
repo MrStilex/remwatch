@@ -118,6 +118,13 @@
   border-radius: 20px;
   padding: 4px 12px 4px 8px;
   font-size: 12px;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+  font-family: inherit;
+}
+.legendItem:hover {
+  border-color: #374151;
+  background: #111827;
 }
 
 .legendDot {
@@ -180,3 +187,120 @@
 .recentTs   { color: #374151; white-space: nowrap; }
 .recentType { white-space: nowrap; font-weight: 500; }
 .recentMsg  { color: #94a3b8; word-break: break-all; }
+
+/* ── error logs modal ── */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 24px;
+}
+
+.modal {
+  background: #0a0f1a;
+  border: 1px solid #1e2736;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 760px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #1e2736;
+  flex-shrink: 0;
+  gap: 12px;
+}
+
+.modalTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.modalDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.modalSub {
+  font-size: 11px;
+  font-weight: 400;
+  color: #4b5563;
+}
+
+.modalActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.copyBtn {
+  background: #111827;
+  border: 1px solid #1e2736;
+  border-radius: 6px;
+  color: #8892a4;
+  font-size: 12px;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: color .15s, border-color .15s;
+}
+.copyBtn:hover:not(:disabled) { color: #e2e8f0; border-color: #374151; }
+.copyBtn:disabled { opacity: .4; cursor: default; }
+
+.closeBtn {
+  background: none;
+  border: 1px solid #1e2736;
+  border-radius: 6px;
+  color: #4b5563;
+  font-size: 14px;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color .15s, border-color .15s;
+}
+.closeBtn:hover { color: #e2e8f0; border-color: #374151; }
+
+.modalBody {
+  overflow-y: auto;
+  flex: 1;
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.modalHint {
+  color: #4b5563;
+  text-align: center;
+  padding: 40px;
+}
+
+.modalRow {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 12px;
+  padding: 6px 20px;
+  border-bottom: 1px solid #080d16;
+  align-items: start;
+}
+.modalRow:hover { background: #0f1623; }
+
+.modalTs  { color: #374151; white-space: nowrap; }
+.modalMsg { color: #94a3b8; word-break: break-all; line-height: 1.5; }
