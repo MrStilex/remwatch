@@ -12,7 +12,7 @@ services:
       ENVIRONMENT: "${ENVIRONMENT:-production}"
     volumes:
       - ./vector/vector.yaml:/etc/vector/vector.yaml:ro
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/log/remnanode-supervisor:/var/log/remnanode-supervisor:ro
     command: ["--config", "/etc/vector/vector.yaml"]
     networks:
       - remwatch

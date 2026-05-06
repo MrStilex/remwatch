@@ -4,11 +4,29 @@ import { copyText } from '../utils/clipboard'
 
 const API = import.meta.env.VITE_API_URL ?? '/api'
 
+function CmdLine({ text }) {
+  const [copied, setCopied] = useState(false)
+  function copy() {
+    copyText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+  return (
+    <div className={styles.cmdBox}>
+      <code className={styles.cmd}>{text}</code>
+      <button
+        type="button"
+        className={`${styles.copyBtn} ${copied ? styles.copied : ''}`}
+        onClick={copy}
+      >{copied ? '✓' : 'Копировать'}</button>
+    </div>
+  )
+}
+
 export default function AddNodeModal({ onClose, onAdded }) {
   const [nodeName, setNodeName] = useState('')
   const [nodeIp,   setNodeIp]   = useState('')
   const [country,  setCountry]  = useState('')
-  const [copied,   setCopied]   = useState(false)
   const [saving,   setSaving]   = useState(false)
   const [error,    setError]    = useState('')
   const [done,     setDone]     = useState(false)
@@ -25,12 +43,6 @@ export default function AddNodeModal({ onClose, onAdded }) {
     `REMWATCH_URL="${origin}"`,
     `bash`,
   ].join(' ')
-
-  function copy() {
-    copyText(cmd)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
 
   async function submit(e) {
     e.preventDefault()
@@ -123,24 +135,34 @@ export default function AddNodeModal({ onClose, onAdded }) {
           ) : (
             <>
               <p className={styles.success}>
-                Нода <strong>{nodeName}</strong> добавлена. Теперь установи агент на сервер:
+                Нода <strong>{nodeName}</strong> добавлена. Следуй инструкции:
               </p>
 
-              <div className={styles.field} style={{ marginTop: 8 }}>
-                <label className={styles.label}>
-                  Команда установки
-                  <span className={styles.hint}>вставь в терминал на сервере</span>
-                </label>
-                <div className={styles.cmdBox}>
-                  <code className={styles.cmd}>{cmd}</code>
-                  <button
-                    type="button"
-                    className={`${styles.copyBtn} ${copied ? styles.copied : ''}`}
-                    onClick={copy}
-                  >
-                    {copied ? '✓ Скопировано' : 'Копировать'}
-                  </button>
+              <div className={styles.steps}>
+
+                <div className={styles.step}>
+                  <div className={styles.stepHeader}>
+                    <span className={styles.stepNum}>1</span>
+                    <span className={styles.stepTitle}>Смонтируй логи remnanode</span>
+                  </div>
+                  <p className={styles.stepDesc}>
+                    Добавь строку в <code>volumes:</code> в файле{' '}
+                    <code>/opt/remnanode/docker-compose.yml</code>:
+                  </p>
+                  <CmdLine text="      - /var/log/remnanode-supervisor:/var/log/supervisor" />
+                  <p className={styles.stepDesc}>Затем перезапусти контейнер:</p>
+                  <CmdLine text="cd /opt/remnanode && docker compose up -d" />
                 </div>
+
+                <div className={styles.step}>
+                  <div className={styles.stepHeader}>
+                    <span className={styles.stepNum}>2</span>
+                    <span className={styles.stepTitle}>Установи агент мониторинга</span>
+                  </div>
+                  <p className={styles.stepDesc}>Вставь в терминал на сервере:</p>
+                  <CmdLine text={cmd} />
+                </div>
+
               </div>
 
               <p className={styles.note}>

@@ -2,9 +2,10 @@ data_dir: /var/lib/vector
 
 sources:
   xray_log:
-    type: docker_logs
-    include_containers:
-      - "remnanode"
+    type: file
+    include:
+      - /var/log/remnanode-supervisor/xray.out.log
+    read_from: end
 
   heartbeat:
     type: exec
