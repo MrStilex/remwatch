@@ -1,7 +1,7 @@
 services:
 
   vector:
-    image: timberio/vector:0.40.0-alpine
+    image: timberio/vector:0.40.0-debian
     container_name: remwatch-vector
     restart: unless-stopped
     environment:
@@ -10,9 +10,15 @@ services:
       NODE_IP: "${NODE_IP}"
       COUNTRY: "${COUNTRY}"
       ENVIRONMENT: "${ENVIRONMENT:-production}"
+      SERVICE_NAME: "${SERVICE_NAME:-}"
+      SERVICE_UNIT: "${SERVICE_UNIT:-}"
+      LOG_PATH: "${LOG_PATH:-}"
     volumes:
       - ./vector/vector.yaml:/etc/vector/vector.yaml:ro
       - /var/log:/var/log:ro
+      - /var/log/journal:/var/log/journal:ro
+      - /run/log/journal:/run/log/journal:ro
+      - /etc/machine-id:/etc/machine-id:ro
     command: ["--config", "/etc/vector/vector.yaml"]
     networks:
       - remwatch

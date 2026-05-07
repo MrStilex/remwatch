@@ -1,0 +1,74 @@
+data_dir: /var/lib/vector
+
+sources:
+  service_journal:
+    type: journald
+    current_boot_only: true
+    since_now: true
+    include_units:
+      - "${SERVICE_UNIT}"
+
+  heartbeat:
+    type: exec
+    mode: scheduled
+    scheduled:
+      exec_interval_secs: 300
+    command: ["sh", "-c", "echo heartbeat"]
+
+transforms:
+  normalize_service_logs:
+    type: remap
+    inputs: ["service_journal"]
+    source: |
+      .node_name    = get_env_var!("NODE_NAME")
+      .node_ip      = get_env_var!("NODE_IP")
+      .country      = get_env_var!("COUNTRY")
+      .environment  = get_env_var!("ENVIRONMENT")
+      .service_name = get_env_var!("SERVICE_NAME")
+      .container    = get_env_var!("SERVICE_UNIT")
+      .source_type  = "systemd"
+      # Avoid Loki "timestamp too old" for journald backlog entries.
+      .timestamp    = now()
+      .message      = string(.MESSAGE) ?? string!(.message)
+
+      p = to_int(.PRIORITY) ?? 6
+      if p <= 3 {
+        .level = "error"
+      } else if p == 4 {
+        .level = "warn"
+      } else {
+        .level = "info"
+      }
+
+  tag_heartbeat:
+    type: remap
+    inputs: ["heartbeat"]
+    source: |
+      .node_name    = get_env_var!("NODE_NAME")
+      .node_ip      = get_env_var!("NODE_IP")
+      .country      = get_env_var!("COUNTRY")
+      .environment  = get_env_var!("ENVIRONMENT")
+      .service_name = get_env_var!("SERVICE_NAME")
+      .container    = "remwatch-agent"
+      .source_type  = "heartbeat"
+      .level        = "info"
+      .message      = "heartbeat"
+
+sinks:
+  loki_out:
+    type: loki
+    inputs: ["normalize_service_logs", "tag_heartbeat"]
+    endpoint: "${LOKI_URL}"
+    compression: gzip
+    encoding:
+      codec: json
+    healthcheck:
+      enabled: false
+    labels:
+      node_name:    "{{ node_name }}"
+      country:      "{{ country }}"
+      service_name: "{{ service_name }}"
+      level:        "{{ level }}"
+      environment:  "{{ environment }}"
+      container:    "{{ container }}"
+      source_type:  "{{ source_type }}"

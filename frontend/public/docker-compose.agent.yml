@@ -1,7 +1,7 @@
 services:
 
   vector:
-    image: timberio/vector:0.40.0-alpine
+    image: timberio/vector:0.40.0-debian
     container_name: remwatch-vector
     restart: unless-stopped
     environment:
@@ -10,9 +10,15 @@ services:
       NODE_IP: "${NODE_IP}"
       COUNTRY: "${COUNTRY}"
       ENVIRONMENT: "${ENVIRONMENT:-production}"
+      SERVICE_NAME: "${SERVICE_NAME:-}"
+      SERVICE_UNIT: "${SERVICE_UNIT:-}"
+      LOG_PATH: "${LOG_PATH:-}"
     volumes:
       - ./vector/vector.yaml:/etc/vector/vector.yaml:ro
-      - /var/log/remnanode-supervisor:/var/log/remnanode-supervisor:ro
+      - /var/log:/var/log:ro
+      - /var/log/journal:/var/log/journal:ro
+      - /run/log/journal:/run/log/journal:ro
+      - /etc/machine-id:/etc/machine-id:ro
     command: ["--config", "/etc/vector/vector.yaml"]
     networks:
       - remwatch
@@ -21,9 +27,7 @@ services:
     image: prom/node-exporter:latest
     container_name: remwatch-node-exporter
     restart: unless-stopped
-    profiles: ["with-exporter"]
     pid: host
-    network_mode: host
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
@@ -32,8 +36,11 @@ services:
       - '--path.procfs=/host/proc'
       - '--path.rootfs=/rootfs'
       - '--path.sysfs=/host/sys'
-      - '--web.listen-address=:9100'
       - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    ports:
+      - "9100:9100"
+    networks:
+      - remwatch
 
 networks:
   remwatch:

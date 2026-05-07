@@ -1,0 +1,71 @@
+data_dir: /var/lib/vector
+
+sources:
+  service_file:
+    type: file
+    include:
+      - "${LOG_PATH}"
+    read_from: end
+
+  heartbeat:
+    type: exec
+    mode: scheduled
+    scheduled:
+      exec_interval_secs: 300
+    command: ["sh", "-c", "echo heartbeat"]
+
+transforms:
+  normalize_service_logs:
+    type: remap
+    inputs: ["service_file"]
+    source: |
+      .node_name    = get_env_var!("NODE_NAME")
+      .node_ip      = get_env_var!("NODE_IP")
+      .country      = get_env_var!("COUNTRY")
+      .environment  = get_env_var!("ENVIRONMENT")
+      .service_name = get_env_var!("SERVICE_NAME")
+      .container    = get_env_var!("SERVICE_NAME")
+      .source_type  = "file"
+      .message      = string!(.message)
+
+      msg = downcase(.message)
+      if contains(msg, "error") || contains(msg, "exception") || contains(msg, "fatal") {
+        .level = "error"
+      } else if contains(msg, "warn") {
+        .level = "warn"
+      } else {
+        .level = "info"
+      }
+
+  tag_heartbeat:
+    type: remap
+    inputs: ["heartbeat"]
+    source: |
+      .node_name    = get_env_var!("NODE_NAME")
+      .node_ip      = get_env_var!("NODE_IP")
+      .country      = get_env_var!("COUNTRY")
+      .environment  = get_env_var!("ENVIRONMENT")
+      .service_name = get_env_var!("SERVICE_NAME")
+      .container    = "remwatch-agent"
+      .source_type  = "heartbeat"
+      .level        = "info"
+      .message      = "heartbeat"
+
+sinks:
+  loki_out:
+    type: loki
+    inputs: ["normalize_service_logs", "tag_heartbeat"]
+    endpoint: "${LOKI_URL}"
+    compression: gzip
+    encoding:
+      codec: json
+    healthcheck:
+      enabled: false
+    labels:
+      node_name:    "{{ node_name }}"
+      country:      "{{ country }}"
+      service_name: "{{ service_name }}"
+      level:        "{{ level }}"
+      environment:  "{{ environment }}"
+      container:    "{{ container }}"
+      source_type:  "{{ source_type }}"

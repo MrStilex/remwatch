@@ -28,6 +28,8 @@ function getAll(series, metricName, labelFilter = {}) {
   )
 }
 
+const trafficSnapshots = new Map()
+
 function buildResponse(series) {
   // ── global ────────────────────────────────────────────────────────────────
   const online = {
@@ -80,7 +82,17 @@ function buildResponse(series) {
     const upload_bytes   = status ? inbounds.reduce((a, b) => a + b.upload_bytes, 0)   : 0
     const download_bytes = status ? inbounds.reduce((a, b) => a + b.download_bytes, 0) : 0
 
-    return { name: node_name, status, online_users, upload_bytes, download_bytes, inbounds: status ? inbounds : [] }
+    return {
+      uuid,
+      name: node_name,
+      status,
+      online_users,
+      upload_bytes,
+      download_bytes,
+      upload_bps: 0,
+      download_bps: 0,
+      inbounds: status ? inbounds : [],
+    }
   })
 
   nodes.sort((a, b) => {
@@ -131,6 +143,27 @@ export default async function metricsRoute(fastify) {
 
     const built = buildResponse(parsePrometheus(text))
     fastify.log.info({ users: built.users, nodesCount: built.nodes.length }, 'parsed metrics')
+
+    const now = Date.now()
+    const prev = trafficSnapshots.get(cacheKey)
+    const dtSec = prev ? (now - prev.ts) / 1000 : 0
+
+    for (const node of built.nodes) {
+      const prevNode = prev?.nodes?.[node.uuid]
+      if (node.status && prevNode && dtSec > 0) {
+        const upDelta = node.upload_bytes - prevNode.upload_bytes
+        const downDelta = node.download_bytes - prevNode.download_bytes
+        node.upload_bps = upDelta >= 0 ? Math.round(upDelta / dtSec) : 0
+        node.download_bps = downDelta >= 0 ? Math.round(downDelta / dtSec) : 0
+      }
+    }
+
+    trafficSnapshots.set(cacheKey, {
+      ts: now,
+      nodes: Object.fromEntries(
+        built.nodes.map(n => [n.uuid, { upload_bytes: n.upload_bytes, download_bytes: n.download_bytes }])
+      ),
+    })
 
     let system = null
     try {
