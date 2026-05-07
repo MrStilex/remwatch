@@ -179,13 +179,16 @@ export default function Nodes() {
   }
 
   return (
-    <main className="page">
+    <main className={`page ${styles.nodesPage}`}>
       <div className={styles.header}>
-        <h1>Ноды</h1>
+        <div className={styles.headerTitle}>
+          <h1>Ноды</h1>
+          <p className={styles.subtitle}>Состояние серверов, утилизация и сетевой трафик в реальном времени.</p>
+        </div>
         <div className={styles.headerActions}>
           <div className={styles.settingsWrap} ref={settingsRef}>
             <button className={styles.settingsBtn} onClick={() => setShowSettings(v => !v)} title="Настройка колонок">
-              ⚙ Колонки
+              Колонки
             </button>
             {showSettings && (
               <div className={styles.settingsDropdown}>
@@ -203,7 +206,7 @@ export default function Nodes() {
               </div>
             )}
           </div>
-          <button className="btn-primary" onClick={() => setShowModal(true)}>
+          <button className={`btn-primary ${styles.addBtn}`} onClick={() => setShowModal(true)}>
             + Добавить ноду
           </button>
         </div>

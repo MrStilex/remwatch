@@ -61,7 +61,10 @@ export default function PanelLogs({ panel }) {
 
   // Автоскролл
   useEffect(() => {
-    if (autoScroll.current) bottomRef.current?.scrollIntoView({ behavior: 'instant' })
+    if (!autoScroll.current) return
+    const el = logAreaRef.current
+    if (!el) return
+    el.scrollTop = el.scrollHeight
   }, [entries.length])
 
   function onScroll() {

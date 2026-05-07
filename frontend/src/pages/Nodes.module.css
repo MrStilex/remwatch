@@ -1,8 +1,55 @@
+.nodesPage {
+  position: relative;
+}
+
+.nodesPage::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(860px 360px at 6% -12%, rgba(34,197,94,.10), transparent 60%),
+    radial-gradient(760px 320px at 94% -16%, rgba(56,189,248,.10), transparent 60%);
+}
+
 .header {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
   margin-bottom: 24px;
+  gap: 16px;
+  position: relative;
+}
+
+.header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -12px;
+  height: 1px;
+  background: linear-gradient(90deg, #1f2b40 0%, #1a2235 40%, transparent 100%);
+}
+
+.headerTitle {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.headerTitle h1 {
+  margin: 0;
+  font-size: clamp(30px, 4.1vw, 40px);
+  line-height: 1.04;
+  letter-spacing: -.015em;
+  color: #e6edf7;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 13px;
+  color: #8a9ab3;
 }
 
 .headerActions {
@@ -16,19 +63,35 @@
 }
 
 .settingsBtn {
-  background: #1a2235;
-  border: 1px solid #1e2736;
-  color: #8892a4;
+  background: #172234;
+  border: 1px solid #243449;
+  color: #9fb0c8;
   cursor: pointer;
   font-size: 13px;
-  padding: 6px 12px;
-  border-radius: 6px;
-  transition: color 0.15s, background 0.15s;
+  padding: 8px 12px;
+  border-radius: 10px;
+  transition: color .15s, background .15s, border-color .15s;
 }
 
 .settingsBtn:hover {
   color: #e2e8f0;
-  background: #1e2a3a;
+  background: #1d2a3f;
+  border-color: #2b3d56;
+}
+
+.addBtn {
+  border: 1px solid #2b3f58;
+  background: #1b2a3f;
+  color: #d6e2f2;
+  font-weight: 700;
+  box-shadow: 0 6px 14px rgba(0,0,0,.22);
+  transition: background .14s, border-color .14s, color .14s;
+}
+
+.addBtn:hover {
+  background: #21324a;
+  border-color: #365173;
+  color: #e6edf7;
 }
 
 .settingsDropdown {
@@ -37,11 +100,11 @@
   top: calc(100% + 6px);
   background: #111827;
   border: 1px solid #1e2736;
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 8px 0;
   min-width: 180px;
   z-index: 100;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  box-shadow: 0 14px 26px rgba(0,0,0,.42);
 }
 
 .settingsTitle {
@@ -74,7 +137,7 @@
 }
 
 .hint {
-  color: #8892a4;
+  color: #9fb0c8;
 }
 
 .error {
@@ -83,6 +146,10 @@
 
 .tableWrap {
   overflow-x: auto;
+  border: 1px solid #243145;
+  border-radius: 14px;
+  background: #0b111d;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.02), 0 12px 24px rgba(0,0,0,.22);
 }
 
 .table {
@@ -93,11 +160,12 @@
 
 .table th {
   text-align: left;
-  padding: 10px 14px;
-  color: #8892a4;
-  font-weight: 500;
-  border-bottom: 1px solid #1e2736;
+  padding: 12px 14px;
+  color: #9fb0c8;
+  font-weight: 600;
+  border-bottom: 1px solid #243145;
   white-space: nowrap;
+  background: #101a2a;
 }
 
 .thSortable {
@@ -111,7 +179,7 @@
 
 .sortIdle {
   margin-left: 4px;
-  color: #2d3748;
+  color: #41526a;
   font-size: 11px;
 }
 
@@ -122,19 +190,19 @@
 }
 
 .table td {
-  padding: 12px 14px;
-  border-bottom: 1px solid #151d2b;
+  padding: 13px 14px;
+  border-bottom: 1px solid #1b2536;
   vertical-align: middle;
 }
 
 .table tbody tr:hover td {
-  background: #151d2b;
+  background: #121d2f;
 }
 
 .dot {
   display: inline-block;
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   margin-right: 8px;
   vertical-align: middle;
@@ -144,7 +212,7 @@
 .offline { background: #6b7280; }
 
 .name {
-  font-weight: 500;
+  font-weight: 600;
   color: #e2e8f0;
 }
 
@@ -164,7 +232,7 @@
 
 .errCount {
   color: #f87171;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .na { color: #374151; font-size: 13px; }
@@ -185,7 +253,7 @@
 .deleteBtn {
   background: none;
   border: none;
-  color: #4b5563;
+  color: #6b7c97;
   cursor: pointer;
   font-size: 14px;
   padding: 4px 8px;
@@ -194,8 +262,8 @@
 }
 
 .deleteBtn:hover:not(:disabled) {
-  color: #f87171;
-  background: #1f1f2e;
+  color: #fb7185;
+  background: #1b2332;
 }
 
 .deleteBtn:disabled {
@@ -205,3 +273,17 @@
 
 .net  { white-space: nowrap; }
 .unit { color: #4b5563; font-size: 11px; }
+
+@media (max-width: 920px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .headerActions {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+}

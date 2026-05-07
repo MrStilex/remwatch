@@ -1,7 +1,11 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background:
+    radial-gradient(680px 280px at 10% -10%, rgba(34,197,94,.08), transparent 55%),
+    radial-gradient(620px 260px at 90% -10%, rgba(56,189,248,.08), transparent 55%),
+    rgba(3, 7, 14, 0.72);
+  backdrop-filter: blur(2px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -9,81 +13,95 @@
 }
 
 .modal {
-  background: #1a1d27;
-  border: 1px solid #2d3148;
-  border-radius: 10px;
+  background: linear-gradient(180deg, #141c2b 0%, #0d1421 100%);
+  border: 1px solid #2a3850;
+  border-radius: 18px;
   width: 560px;
   max-width: 95vw;
+  box-shadow: 0 24px 44px rgba(0, 0, 0, 0.42);
+  overflow: hidden;
 }
 
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 20px;
-  border-bottom: 1px solid #2d3148;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid #26344a;
+  background: linear-gradient(180deg, rgba(16,24,38,.9) 0%, rgba(16,24,38,.55) 100%);
 }
 
 .header h2 {
-  font-size: 16px;
-  font-weight: 600;
-  color: #e2e8f0;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #e6edf7;
+  letter-spacing: .01em;
 }
 
 .close {
   background: none;
   border: none;
-  color: #8892a4;
+  color: #8da0bc;
   font-size: 16px;
   cursor: pointer;
   line-height: 1;
-  padding: 2px 6px;
+  padding: 3px 8px;
+  border-radius: 8px;
+  transition: color .14s, background .14s;
 }
-.close:hover { color: #e2e8f0; }
+.close:hover { color: #e2e8f0; background: #182131; }
 
 .body {
   padding: 20px;
   display: flex;
   flex-direction: column;
+  gap: 6px;
+}
+
+.sectionTitle {
+  margin: 0 0 10px;
+  font-size: 12px;
+  color: #8ea2bf;
+  letter-spacing: .08em;
+  text-transform: uppercase;
 }
 
 .label {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
   font-size: 12px;
   font-weight: 600;
-  color: #8892a4;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
+  color: #d5deeb;
+  margin-bottom: 4px;
 }
 
 .hint {
+  display: block;
+  margin-bottom: 8px;
   font-size: 11px;
   font-weight: 400;
-  text-transform: none;
-  letter-spacing: 0;
-  color: #4a5568;
+  color: #6b7c97;
 }
 
 .input {
-  background: #0f1117;
-  border: 1px solid #2d3148;
-  border-radius: 6px;
+  background: #0b111d;
+  border: 1px solid #26344a;
+  border-radius: 10px;
   color: #e2e8f0;
-  padding: 9px 12px;
+  padding: 10px 12px;
   font-size: 13px;
   outline: none;
-  transition: border-color 0.15s;
+  transition: border-color .15s, box-shadow .15s;
 }
-.input:focus { border-color: #00f59b; }
-.input::placeholder { color: #38475e; }
+.input:focus {
+  border-color: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34,197,94,.12);
+}
+.input::placeholder { color: #4d617f; }
 
 .cmdBox {
-  background: #0f1117;
-  border: 1px solid #2d3148;
-  border-radius: 6px;
+  background: #0b111d;
+  border: 1px solid #26344a;
+  border-radius: 10px;
   padding: 12px 14px;
   display: flex;
   align-items: flex-start;
@@ -101,36 +119,36 @@
 
 .copyBtn {
   flex-shrink: 0;
-  background: #2d3148;
+  background: #202a3e;
   border: none;
-  border-radius: 5px;
+  border-radius: 8px;
   color: #e2e8f0;
   font-size: 12px;
   padding: 5px 12px;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background .15s;
   white-space: nowrap;
 }
-.copyBtn:hover { background: #3d4268; }
+.copyBtn:hover { background: #2b3951; }
 .copied { background: #1e3a2f !important; color: #00f59b; }
 
 .note {
   margin-top: 16px;
   font-size: 12px;
-  color: #4a5568;
+  color: #7c8ca7;
   line-height: 1.6;
 }
 
 .row {
   display: grid;
-  grid-template-columns: 1fr 100px;
+  grid-template-columns: 1fr 160px;
   gap: 12px;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .footer {
@@ -138,6 +156,27 @@
   justify-content: flex-end;
   gap: 10px;
   margin-top: 18px;
+}
+
+.footer :global(.btn-primary) {
+  min-width: 142px;
+  border: 1px solid #2b3f58;
+  background: #1b2a3f;
+  color: #d6e2f2;
+  font-weight: 700;
+  box-shadow: 0 6px 14px rgba(0,0,0,.22);
+  transition: background .14s, border-color .14s, color .14s;
+}
+
+.footer :global(.btn-primary:hover) {
+  background: #21324a;
+  border-color: #365173;
+  color: #e6edf7;
+}
+
+.footer :global(.btn-primary:disabled) {
+  opacity: .62;
+  cursor: not-allowed;
 }
 
 .cancel {
@@ -158,9 +197,9 @@
 }
 
 .success {
-  font-size: 13px;
-  color: #00f59b;
-  margin-bottom: 12px;
+  font-size: 14px;
+  color: #9fb0c8;
+  margin: 0 0 10px;
   line-height: 1.5;
 }
 .success strong { color: #e2e8f0; }
@@ -168,14 +207,14 @@
 .steps {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   margin-bottom: 12px;
 }
 
 .step {
-  background: #0f1117;
-  border: 1px solid #2d3148;
-  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(11,17,29,.92) 0%, rgba(9,14,24,.96) 100%);
+  border: 1px solid #26344a;
+  border-radius: 12px;
   padding: 12px 14px;
 }
 
@@ -193,32 +232,62 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #00f59b;
-  color: #0f1117;
+  background: #22c55e;
+  color: #062515;
   font-size: 11px;
   font-weight: 700;
   flex-shrink: 0;
 }
 
 .stepTitle {
-  font-size: 12px;
-  font-weight: 600;
-  color: #e2e8f0;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #e6edf7;
+  letter-spacing: .01em;
 }
 
 .stepDesc {
   font-size: 12px;
-  color: #8892a4;
+  color: #9fb0c8;
   margin: 0 0 6px;
   line-height: 1.5;
 }
 .stepDesc code {
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
-  color: #a0aec0;
-  background: #1a1d27;
+  color: #c2d1e6;
+  background: #121b2b;
   padding: 1px 4px;
   border-radius: 3px;
+}
+
+@media (max-width: 720px) {
+  .modal {
+    width: calc(100vw - 20px);
+    max-height: calc(100vh - 20px);
+    overflow: auto;
+  }
+
+  .header {
+    padding: 14px 14px 12px;
+  }
+
+  .body {
+    padding: 14px;
+  }
+
+  .row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .footer {
+    flex-wrap: wrap;
+  }
+
+  .footer :global(.btn-primary),
+  .cancel {
+    width: 100%;
+    justify-content: center;
+  }
 }

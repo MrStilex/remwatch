@@ -1,8 +1,8 @@
 .wrap {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 4px 0;
+  gap: 8px;
+  padding: 2px 0 4px;
 }
 
 .state {
@@ -20,11 +20,15 @@
 
 /* ── collapsible section ── */
 .section {
-  border-top: 1px solid #1a2235;
+  border: 1px solid #1f2a3b;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(13,20,33,.85) 0%, rgba(10,15,26,.65) 100%);
+  padding: 0 12px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.02), 0 12px 26px rgba(0,0,0,.24);
 }
 
 .section:first-child {
-  border-top: none;
+  border-top: 1px solid #1f2a3b;
 }
 
 .sectionToggle {
@@ -34,18 +38,18 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 2px;
+  padding: 11px 2px;
   cursor: pointer;
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: .06em;
-  color: #4b5563;
+  color: #64748b;
   transition: color .15s;
 }
 
 .sectionToggle:hover {
-  color: #8892a4;
+  color: #a8b3c5;
 }
 
 .chevron {
@@ -55,14 +59,16 @@
 .sectionBody {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding-bottom: 14px;
+  gap: 12px;
+  padding-bottom: 12px;
 }
 
 .subTitle {
-  font-size: 11px;
-  color: #374151;
-  margin-top: 4px;
+  font-size: 10px;
+  color: #6b7280;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  margin-top: 2px;
 }
 
 /* ── stat cards ── */
@@ -73,30 +79,55 @@
 }
 
 .stat {
-  background: #0a0f1a;
-  border: 1px solid #1e2736;
-  border-radius: 8px;
-  padding: 10px 12px;
+  background: #0b111d;
+  border: 1px solid #243145;
+  border-radius: 14px;
+  padding: 11px 12px;
   display: flex;
   flex-direction: column;
   gap: 4px;
+  transition: transform .14s ease, border-color .14s ease, box-shadow .14s ease;
+}
+
+.stat:hover {
+  transform: translateY(-1px);
+  border-color: #31435f;
+  box-shadow: 0 8px 18px rgba(0,0,0,.28);
+}
+
+.statNeutral {
+  background: linear-gradient(180deg, rgba(16,24,38,.94), rgba(11,17,29,.95));
+}
+
+.statSuccess {
+  background: linear-gradient(180deg, rgba(9,38,30,.66), rgba(11,17,29,.95));
+}
+
+.statWarn {
+  background: linear-gradient(180deg, rgba(52,40,13,.52), rgba(11,17,29,.95));
+}
+
+.statDanger {
+  background: linear-gradient(180deg, rgba(48,19,19,.52), rgba(11,17,29,.95));
 }
 
 .statVal {
-  font-size: 22px;
-  font-weight: 700;
+  font-size: 24px;
+  font-weight: 800;
   color: #e2e8f0;
   line-height: 1;
+  letter-spacing: .01em;
 }
 
 .statLabel {
   font-size: 11px;
-  color: #4b5563;
+  color: #64748b;
 }
 
 .green  { color: #22c55e; }
 .yellow { color: #facc15; }
 .muted  { color: #6b7280; }
+.danger { color: #fb7185; }
 
 /* ── online ── */
 .onlineGrid {
@@ -109,10 +140,16 @@
   display: flex;
   flex-direction: column;
   gap: 3px;
-  padding: 8px 12px;
-  background: #0a0f1a;
-  border: 1px solid #1e2736;
-  border-radius: 8px;
+  padding: 9px 12px;
+  background: #0b111d;
+  border: 1px solid #243145;
+  border-radius: 12px;
+  transition: border-color .14s ease, box-shadow .14s ease;
+}
+
+.onlineStat:hover {
+  border-color: #31435f;
+  box-shadow: 0 6px 14px rgba(0,0,0,.2);
 }
 
 .onlineVal {
@@ -123,34 +160,54 @@
 
 .onlineLabel {
   font-size: 11px;
-  color: #4b5563;
+  color: #64748b;
 }
 
 /* ── nodes ── */
-.nodeList {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.nodesTableWrap {
+  border: 1px solid #243145;
+  border-radius: 14px;
+  overflow-x: auto;
+  background: #0b111d;
 }
 
-.nodeRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  background: #0a0f1a;
-  border: 1px solid #1e2736;
-  border-radius: 8px;
-  gap: 12px;
+.nodesTable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 640px;
+}
+
+.nodesTable thead th {
+  text-align: left;
+  font-size: 11px;
+  color: #64748b;
+  letter-spacing: .03em;
+  font-weight: 600;
+  padding: 12px 12px;
+  border-bottom: 1px solid #243145;
+  background: #101a2a;
+}
+
+.nodesTable tbody td {
+  padding: 12px 12px;
+  border-bottom: 1px solid #1b2536;
+  vertical-align: middle;
+}
+
+.nodesTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.nodesTable tbody tr:hover td {
+  background: #121d2f;
 }
 
 .nodeOffline { opacity: .5; }
 
-.nodeLeft {
+.nodeStatus {
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-width: 0;
+  gap: 7px;
 }
 
 .nodeDot {
@@ -163,24 +220,42 @@
 .dotOnline  { background: #22c55e; box-shadow: 0 0 5px #22c55e88; }
 .dotOffline { background: #4b5563; }
 
-.nodeName {
+.statusOnline {
+  color: #22c55e;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  border: 1px solid rgba(34,197,94,.32);
+  background: rgba(34,197,94,.12);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+.statusOffline {
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  border: 1px solid rgba(148,163,184,.28);
+  background: rgba(148,163,184,.1);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+.nodeNameCell {
   font-size: 13px;
   color: #e2e8f0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 220px;
 }
 
-.nodeRight {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-shrink: 0;
-}
-
-.nodeUsers   { font-size: 13px; color: #60a5fa; white-space: nowrap; }
-.nodeTraffic { font-size: 12px; color: #4b5563; font-family: monospace; white-space: nowrap; }
-.offlineLabel { font-size: 12px; color: #4b5563; }
+.nodeUsers   { font-size: 13px; color: #67e8f9; white-space: nowrap; font-weight: 600; }
+.nodeTraffic { font-size: 12px; color: #93a4be; font-family: monospace; white-space: nowrap; }
+.nodeTrafficSpeed { font-size: 12px; color: #60a5fa; font-family: monospace; white-space: nowrap; }
 
 /* ── system metrics ── */
 .sysGrid {
@@ -190,25 +265,31 @@
 }
 
 .sysStat {
-  background: #0a0f1a;
-  border: 1px solid #1e2736;
-  border-radius: 8px;
+  background: #0b111d;
+  border: 1px solid #243145;
+  border-radius: 12px;
   padding: 10px 12px;
   display: flex;
   flex-direction: column;
   gap: 4px;
+  transition: border-color .14s ease, box-shadow .14s ease;
+}
+
+.sysStat:hover {
+  border-color: #31435f;
+  box-shadow: 0 6px 14px rgba(0,0,0,.2);
 }
 
 .sysLabel {
   font-size: 11px;
-  color: #4b5563;
+  color: #64748b;
   text-transform: uppercase;
   letter-spacing: .04em;
 }
 
 .sysSub {
   font-size: 11px;
-  color: #374151;
+  color: #6b7280;
   font-family: monospace;
   margin-top: 2px;
 }
@@ -217,3 +298,17 @@
 .pctWarn   { font-size: 18px; font-weight: 600; color: #facc15; }
 .pctDanger { font-size: 18px; font-weight: 600; color: #f87171; }
 .na        { font-size: 18px; font-weight: 600; color: #374151; }
+
+@media (max-width: 860px) {
+  .statGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .onlineGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .sysGrid {
+    grid-template-columns: 1fr;
+  }
+}

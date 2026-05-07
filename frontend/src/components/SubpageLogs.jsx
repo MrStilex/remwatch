@@ -62,7 +62,10 @@ export default function SubpageLogs({ panel }) {
   }, [fetchLogs])
 
   useEffect(() => {
-    if (autoScroll.current) bottomRef.current?.scrollIntoView({ behavior: 'instant' })
+    if (!autoScroll.current) return
+    const el = logAreaRef.current
+    if (!el) return
+    el.scrollTop = el.scrollHeight
   }, [entries.length])
 
   function onScroll() {
@@ -89,7 +92,6 @@ export default function SubpageLogs({ panel }) {
             <span className={styles.okBadge}>Всё хорошо</span>
           )}
         </div>
-        <span className={styles.liveLabel}>● Live</span>
       </div>
 
       <div className={styles.logArea} ref={logAreaRef} onScroll={onScroll}>

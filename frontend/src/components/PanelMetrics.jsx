@@ -11,6 +11,11 @@ function fmtBytes(b) {
   return b + ' B'
 }
 
+function fmtRate(bps) {
+  if (bps == null) return '—'
+  return `${(bps / 1e6).toFixed(2)} MB/s`
+}
+
 function pct(used, total) {
   if (!used || !total) return null
   return Math.round(used / total * 100)
@@ -80,20 +85,20 @@ export default function PanelMetrics({ panel }) {
 
       <CollapseSection title="Метрики" open={metricsOpen} onToggle={() => setMetricsOpen(v => !v)}>
         <div className={styles.statGrid}>
-          <div className={styles.stat}>
+          <div className={`${styles.stat} ${styles.statNeutral}`}>
             <span className={styles.statVal}>{users.total}</span>
             <span className={styles.statLabel}>Всего</span>
           </div>
-          <div className={styles.stat}>
+          <div className={`${styles.stat} ${styles.statSuccess}`}>
             <span className={`${styles.statVal} ${styles.green}`}>{users.active}</span>
             <span className={styles.statLabel}>Активных</span>
           </div>
-          <div className={styles.stat}>
+          <div className={`${styles.stat} ${styles.statWarn}`}>
             <span className={`${styles.statVal} ${styles.yellow}`}>{users.limited}</span>
             <span className={styles.statLabel}>Ограничено</span>
           </div>
-          <div className={styles.stat}>
-            <span className={`${styles.statVal} ${styles.muted}`}>{users.expired}</span>
+          <div className={`${styles.stat} ${styles.statDanger}`}>
+            <span className={`${styles.statVal} ${styles.danger}`}>{users.expired}</span>
             <span className={styles.statLabel}>Истекло</span>
           </div>
         </div>
@@ -119,25 +124,40 @@ export default function PanelMetrics({ panel }) {
         </div>
 
         <div className={styles.subTitle}>Ноды</div>
-        <div className={styles.nodeList}>
-          {nodes.map(node => (
-            <div key={node.name} className={`${styles.nodeRow} ${node.status ? '' : styles.nodeOffline}`}>
-              <div className={styles.nodeLeft}>
-                <span className={`${styles.nodeDot} ${node.status ? styles.dotOnline : styles.dotOffline}`} />
-                <span className={styles.nodeName}>{node.name}</span>
-              </div>
-              <div className={styles.nodeRight}>
-                {node.status ? (
-                  <>
-                    <span className={styles.nodeUsers}>👤 {node.online_users}</span>
-                    <span className={styles.nodeTraffic}>↑ {fmtBytes(node.upload_bytes)} · ↓ {fmtBytes(node.download_bytes)}</span>
-                  </>
-                ) : (
-                  <span className={styles.offlineLabel}>Отключена</span>
-                )}
-              </div>
-            </div>
-          ))}
+        <div className={styles.nodesTableWrap}>
+          <table className={styles.nodesTable}>
+            <thead>
+              <tr>
+                <th>Статус</th>
+                <th>Нода</th>
+                <th>Онлайн</th>
+                <th>Traffic Total</th>
+                <th>Traffic Speed</th>
+              </tr>
+            </thead>
+            <tbody>
+              {nodes.map(node => (
+                <tr key={node.name} className={node.status ? '' : styles.nodeOffline}>
+                  <td>
+                    <span className={styles.nodeStatus}>
+                      <span className={`${styles.nodeDot} ${node.status ? styles.dotOnline : styles.dotOffline}`} />
+                      <span className={node.status ? styles.statusOnline : styles.statusOffline}>
+                        {node.status ? 'Online' : 'Offline'}
+                      </span>
+                    </span>
+                  </td>
+                  <td className={styles.nodeNameCell}>{node.name}</td>
+                  <td><span className={styles.nodeUsers}>{node.status ? node.online_users : '—'}</span></td>
+                  <td className={styles.nodeTraffic}>
+                    ↑ {fmtBytes(node.upload_bytes)} · ↓ {fmtBytes(node.download_bytes)}
+                  </td>
+                  <td className={styles.nodeTrafficSpeed}>
+                    ↑ {fmtRate(node.upload_bps)} · ↓ {fmtRate(node.download_bps)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </CollapseSection>
 

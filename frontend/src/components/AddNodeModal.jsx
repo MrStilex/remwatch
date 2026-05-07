@@ -81,25 +81,34 @@ export default function AddNodeModal({ onClose, onAdded }) {
         <div className={styles.body}>
           {!done ? (
             <form onSubmit={submit}>
+              <p className={styles.sectionTitle}>Данные ноды</p>
+
+              <div className={styles.field}>
+                <label className={styles.label}>Имя ноды</label>
+                <span className={styles.hint}>Например: Germany #3</span>
+                <input
+                  className={styles.input}
+                  placeholder="Germany #3"
+                  value={nodeName}
+                  onChange={e => setNodeName(e.target.value)}
+                  autoFocus
+                />
+              </div>
+
               <div className={styles.row}>
                 <div className={styles.field}>
-                  <label className={styles.label}>
-                    Имя ноды
-                    <span className={styles.hint}>например: Germany #3</span>
-                  </label>
+                  <label className={styles.label}>IP ноды</label>
+                  <span className={styles.hint}>Внешний IP сервера</span>
                   <input
                     className={styles.input}
-                    placeholder="Germany #3"
-                    value={nodeName}
-                    onChange={e => setNodeName(e.target.value)}
-                    autoFocus
+                    placeholder="1.2.3.4"
+                    value={nodeIp}
+                    onChange={e => setNodeIp(e.target.value)}
                   />
                 </div>
                 <div className={styles.field}>
-                  <label className={styles.label}>
-                    Код страны
-                    <span className={styles.hint}>двухбуквенный ISO</span>
-                  </label>
+                  <label className={styles.label}>Код страны</label>
+                  <span className={styles.hint}>Двухбуквенный ISO</span>
                   <input
                     className={styles.input}
                     placeholder="DE"
@@ -108,19 +117,6 @@ export default function AddNodeModal({ onClose, onAdded }) {
                     onChange={e => setCountry(e.target.value.toUpperCase())}
                   />
                 </div>
-              </div>
-
-              <div className={styles.field}>
-                <label className={styles.label}>
-                  IP ноды
-                  <span className={styles.hint}>внешний IP сервера</span>
-                </label>
-                <input
-                  className={styles.input}
-                  placeholder="1.2.3.4"
-                  value={nodeIp}
-                  onChange={e => setNodeIp(e.target.value)}
-                />
               </div>
 
               {error && <p className={styles.err}>{error}</p>}
@@ -135,7 +131,7 @@ export default function AddNodeModal({ onClose, onAdded }) {
           ) : (
             <>
               <p className={styles.success}>
-                Нода <strong>{nodeName}</strong> добавлена. Следуй инструкции:
+                Нода <strong>{nodeName}</strong> добавлена.
               </p>
 
               <div className={styles.steps}>
@@ -146,8 +142,7 @@ export default function AddNodeModal({ onClose, onAdded }) {
                     <span className={styles.stepTitle}>Смонтируй логи remnanode</span>
                   </div>
                   <p className={styles.stepDesc}>
-                    Добавь строку в <code>volumes:</code> в файле{' '}
-                    <code>/opt/remnanode/docker-compose.yml</code>:
+                    Добавь строку в <code>volumes</code> в файле <code>/opt/remnanode/docker-compose.yml</code>:
                   </p>
                   <CmdLine text="      - /var/log/remnanode-supervisor:/var/log/supervisor" />
                   <p className={styles.stepDesc}>Затем перезапусти контейнер:</p>
@@ -159,7 +154,7 @@ export default function AddNodeModal({ onClose, onAdded }) {
                     <span className={styles.stepNum}>2</span>
                     <span className={styles.stepTitle}>Установи агент мониторинга</span>
                   </div>
-                  <p className={styles.stepDesc}>Вставь в терминал на сервере:</p>
+                  <p className={styles.stepDesc}>Запусти команду на сервере:</p>
                   <CmdLine text={cmd} />
                 </div>
 

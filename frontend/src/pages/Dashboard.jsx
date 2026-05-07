@@ -50,21 +50,21 @@ function AddMenu({ onSelect }) {
       {open && (
         <div className={styles.addMenu}>
           <button className={styles.addMenuItem} onClick={() => pick('metrics')}>
-            <span className={styles.addIcon}>📊</span>
+            <span className={`${styles.addIconBadge} ${styles.addMetrics}`}>M</span>
             <span>
               <span className={styles.addMenuLabel}>Метрики панели</span>
               <span className={styles.addMenuSub}>Пользователи, ноды, трафик</span>
             </span>
           </button>
           <button className={styles.addMenuItem} onClick={() => pick('logs')}>
-            <span className={styles.addIcon}>📋</span>
+            <span className={`${styles.addIconBadge} ${styles.addLogs}`}>L</span>
             <span>
               <span className={styles.addMenuLabel}>Логи панели</span>
               <span className={styles.addMenuSub}>Ошибки и события в реальном времени</span>
             </span>
           </button>
           <button className={styles.addMenuItem} onClick={() => pick('subpage')}>
-            <span className={styles.addIcon}>🌐</span>
+            <span className={`${styles.addIconBadge} ${styles.addSubpage}`}>S</span>
             <span>
               <span className={styles.addMenuLabel}>Логи страницы подписки</span>
               <span className={styles.addMenuSub}>Ошибки и события подписок</span>
@@ -81,9 +81,10 @@ function PanelCard({ panel, onRemove }) {
     <div className={styles.card}>
       <div className={styles.cardHeader}>
         <div className={styles.cardMeta}>
-          <span className={styles.cardType}>
-            {panel.type === 'logs' ? '📋' : '📊'}
-          </span>
+          <span className={`${styles.cardTypeDot} ${
+            panel.type === 'metrics' ? styles.typeMetrics :
+            panel.type === 'logs' ? styles.typeLogs : styles.typeSubpage
+          }`} />
           <span className={styles.cardName}>{panel.name}</span>
         </div>
         <button className={styles.removeBtn} onClick={() => onRemove(panel.id)} title="Удалить панель">✕</button>
@@ -102,9 +103,13 @@ export default function Dashboard() {
   const { panels, add, remove } = usePanels()
 
   return (
-    <main className="page">
+    <main className={`page ${styles.dashboardPage}`}>
       <div className={styles.header}>
-        <h1>Dashboard</h1>
+        <div className={styles.headerTitle}>
+          <span className={styles.kicker}>Control Center</span>
+          <h1>Dashboard</h1>
+          <p className={styles.subtitle}>Мониторинг метрик, логов панели и подписок в одном месте.</p>
+        </div>
         <AddMenu onSelect={setModal} />
       </div>
 
