@@ -1,0 +1,144 @@
+.modalWide {
+  width: 960px;
+  max-width: 96vw;
+}
+
+.body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.muted {
+  color: #8ea2bf;
+  margin: 0;
+}
+
+.tableWrap {
+  border: 1px solid #243145;
+  border-radius: 12px;
+  overflow: auto;
+  background: #0b111d;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 820px;
+}
+
+.table th {
+  text-align: left;
+  background: #101a2a;
+  color: #9fb0c8;
+  font-weight: 600;
+  padding: 10px 12px;
+  border-bottom: 1px solid #243145;
+}
+
+.table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #1b2536;
+  color: #d5deeb;
+  vertical-align: top;
+}
+
+.table tbody tr:hover td {
+  background: #121d2f;
+}
+
+.actions {
+  width: 64px;
+}
+
+.trashBtn {
+  background: none;
+  border: 1px solid #2b3f58;
+  color: #fca5a5;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.trashBtn:hover {
+  background: #241720;
+}
+
+.dim {
+  color: #7c8ca7;
+  margin-left: 6px;
+}
+
+.empty {
+  text-align: center;
+  color: #8ea2bf;
+}
+
+.removeBox {
+  border: 1px solid #3a2b34;
+  border-radius: 12px;
+  background: #131822;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cmdLine {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.cmdLine code {
+  flex: 1;
+  background: #0b111d;
+  border: 1px solid #26344a;
+  border-radius: 8px;
+  padding: 8px;
+  color: #b9c9df;
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.cmdLine button {
+  background: #1b2a3f;
+  border: 1px solid #2b3f58;
+  color: #d6e2f2;
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.removeActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.cancelBtn {
+  background: none;
+  border: 1px solid #2d3148;
+  color: #9fb0c8;
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.removeBtn {
+  background: #3a1d28;
+  border: 1px solid #7f1d3f;
+  color: #fecdd3;
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+}

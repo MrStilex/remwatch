@@ -24,7 +24,7 @@ function Sidebar() {
       <NavLink to="/"       end>Dashboard</NavLink>
       <NavLink to="/nodes"  >Nodes</NavLink>
       <NavLink to="/logs"   >Logs</NavLink>
-      <NavLink to="/alerts" >Alerts</NavLink>
+      <NavLink to="/journal">Website/Bot Journal</NavLink>
       <button className="sidebar-logout" onClick={logout}>Выйти</button>
     </aside>
   )
@@ -39,8 +39,9 @@ function AppLayout() {
           <Route path="/"            element={<Dashboard />} />
           <Route path="/nodes"       element={<Nodes />} />
           <Route path="/nodes/:name" element={<NodeDetail />} />
-          <Route path="/logs"        element={<Logs />} />
-          <Route path="/alerts"      element={<Alerts />} />
+          <Route path="/logs"        element={<Alerts />} />
+          <Route path="/journal"     element={<Logs />} />
+          <Route path="/alerts"      element={<Navigate to="/logs" replace />} />
           <Route path="*"            element={<Navigate to="/" replace />} />
         </Routes>
       </div>

@@ -1,0 +1,116 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.header h1 {
+  margin: 0;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: 160px auto;
+  gap: 8px;
+  align-items: center;
+  max-width: 340px;
+}
+
+.input {
+  background: #101a2a;
+  border: 1px solid #27344a;
+  color: #d8e1ee;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+
+.error {
+  margin: 0;
+  color: #fca5a5;
+  font-size: 12px;
+}
+
+.notice {
+  margin: 0;
+  color: #86efac;
+  font-size: 12px;
+}
+
+.tableWrap {
+  border: 1px solid #243145;
+  border-radius: 12px;
+  background: #0b111d;
+  overflow: auto;
+}
+
+.table {
+  width: 100%;
+  min-width: 780px;
+  border-collapse: collapse;
+}
+
+.table th {
+  text-align: left;
+  background: #101a2a;
+  color: #97abc8;
+  border-bottom: 1px solid #243145;
+  padding: 9px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.table td {
+  border-bottom: 1px solid #1b2536;
+  color: #d8e1ee;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+
+.table tbody tr:hover td {
+  background: #111a2a;
+}
+
+.empty {
+  text-align: center;
+  color: #8ea2bf;
+  padding: 16px 8px;
+}
+
+.deleteBtn {
+  background: #3a1d28;
+  border: 1px solid #7f1d3f;
+  color: #fecdd3;
+  border-radius: 7px;
+  padding: 5px 9px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.deleteBtn:disabled {
+  opacity: .65;
+  cursor: default;
+}
+
+.viewer {
+  margin: 0;
+  min-height: 62vh;
+  max-height: 72vh;
+  overflow: auto;
+  border: 1px solid #243145;
+  border-radius: 12px;
+  background: #0b111d;
+  padding: 10px;
+  color: #d8e1ee;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+@media (max-width: 900px) {
+  .controls {
+    grid-template-columns: 1fr;
+    max-width: none;
+  }
+}
