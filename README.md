@@ -4,25 +4,25 @@
 
 > Важно: панель находится на ранней стадии разработки (early stage / WIP).
 
-## Что есть сейчас
+## Возможности
 
-- `Dashboard` — общий обзор метрик и состояния.
-- `Nodes` — список нод, статус и трафик.
-- `Logs` — список источников логов в Loki.
-- `Website/Bot Journal` — поиск по логам сервисов.
+- **Dashboard** — общий обзор метрик, состояния нод, пользователей и трафика.
+- **Nodes** — список нод, статусы, сетевые показатели и добавление новых нод.
+- **Logs** — список источников логов в Loki, время последнего обновления и удаление источников.
+- **Website/Bot Journal** — поиск по логам сайта/бота с фильтрами по сервису, уровню и периоду.
 
 ## Скриншоты
 
 ### Dashboard
-![Dashboard](/assets/Dashboard.png)
-![Dashboard 2](/assets/Dashboard%202.png)
+<img src="assets/Dashboard.png" alt="Dashboard" width="100%">
+<img src="assets/Dashboard%202.png" alt="Dashboard metrics" width="100%">
 
 ### Nodes
-![Nodes](/assets/Nodes.png)
-![Nodes 2](/assets/Nodes%202.png)
+<img src="assets/Nodes.png" alt="Nodes" width="100%">
+<img src="assets/Nodes%202.png" alt="Nodes table" width="100%">
 
 ### Logs
-![Logs](/assets/Logs.png)
+<img src="assets/Logs.png" alt="Logs" width="100%">
 
-### Journal
-![Journal](/assets/Journal.png)
+### Website/Bot Journal
+<img src="assets/Journal.png" alt="Website/Bot Journal" width="100%">
