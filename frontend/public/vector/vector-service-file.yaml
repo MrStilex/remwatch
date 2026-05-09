@@ -52,20 +52,12 @@ transforms:
       .message      = "heartbeat"
 
 sinks:
-  loki_out:
-    type: loki
+  ingest_out:
+    type: http
     inputs: ["normalize_service_logs", "tag_heartbeat"]
-    endpoint: "${LOKI_URL}"
-    compression: gzip
+    uri: "${LOG_INGEST_URL}"
+    method: post
     encoding:
       codec: json
-    healthcheck:
-      enabled: false
-    labels:
-      node_name:    "{{ node_name }}"
-      country:      "{{ country }}"
-      service_name: "{{ service_name }}"
-      level:        "{{ level }}"
-      environment:  "{{ environment }}"
-      container:    "{{ container }}"
-      source_type:  "{{ source_type }}"
+    headers:
+      Authorization: "Bearer ${SERVICE_TOKEN}"

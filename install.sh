@@ -71,13 +71,14 @@ EOF
   # ════════════════════════════════════════════════════════════════════════════
   2|agent)
     # ── параметры ноды (интерактивно только если не переданы через окружение) ──
-    [ -z "${LOKI_URL:-}"  ] && ask "Loki URL (например http://monitor.example.com:3100)" LOKI_URL
+    [ -z "${LOG_INGEST_URL:-}" ] && ask "Ingest URL (например http://monitor.example.com:3000/api/logs/ingest)" LOG_INGEST_URL
+    [ -z "${SERVICE_TOKEN:-}" ] && ask "Service token" SERVICE_TOKEN
     [ -z "${NODE_NAME:-}" ] && ask "Имя ноды (например Germany #3)"                      NODE_NAME
     [ -z "${NODE_IP:-}"   ] && ask "IP ноды (например 1.2.3.4)"                          NODE_IP
     [ -z "${COUNTRY:-}"   ] && ask "Код страны (например DE)"                            COUNTRY
 
-    export LOKI_URL NODE_NAME NODE_IP COUNTRY
-    curl -fsSL "${REPO_URL}/agent-install.sh" | bash
+    export LOG_INGEST_URL SERVICE_TOKEN NODE_NAME NODE_IP COUNTRY
+    curl -fsSL "${REPO_URL}/node-agent-install.sh" | bash
     ;;
 
   *)

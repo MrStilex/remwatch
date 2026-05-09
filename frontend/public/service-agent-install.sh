@@ -97,7 +97,8 @@ echo "  │      remwatch website/bot journal installer        │"
 echo "  └────────────────────────────────────────────────────┘"
 echo ""
 
-prompt_default LOKI_URL "Loki URL" "http://${HOSTNAME:-localhost}:3100"
+prompt_default LOG_INGEST_URL "Logs ingest URL" "${REMWATCH_URL}/api/logs/ingest"
+prompt_default SERVICE_TOKEN "Service ingest token"
 prompt_default NODE_NAME "Node name" "my-server"
 prompt_default NODE_IP "Node public IP" "1.2.3.4"
 prompt_default COUNTRY "Country (ISO2)" "XX"
@@ -121,6 +122,7 @@ if [ -n "${SERVICE_UNIT:-}" ] && [ -n "${LOG_PATH:-}" ]; then
 fi
 
 info "Параметры:"
+echo "  LOG_INGEST_URL=${LOG_INGEST_URL}"
 echo "  NODE_NAME=${NODE_NAME}"
 echo "  NODE_IP=${NODE_IP}"
 echo "  COUNTRY=${COUNTRY}"
@@ -186,7 +188,8 @@ else
 fi
 
 cat > .env <<EOF
-LOKI_URL=${LOKI_URL}
+LOG_INGEST_URL=${LOG_INGEST_URL}
+SERVICE_TOKEN=${SERVICE_TOKEN}
 NODE_NAME=${NODE_NAME}
 NODE_IP=${NODE_IP}
 COUNTRY=${COUNTRY}
@@ -216,19 +219,16 @@ else
   warn "Node Exporter недоступен на 9100."
 fi
 
-LOKI_RESP=$(curl -s --max-time 5 \
-  "${LOKI_URL}/loki/api/v1/query" \
-  --data-urlencode "query={service_name=\"${SERVICE_NAME}\"}" \
-  --data-urlencode "limit=1" 2>/dev/null || echo "")
+INGEST_RESP=$(curl -s --max-time 5 -o /dev/null -w "%{http_code}" \
+  -H "Authorization: Bearer ${SERVICE_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -X POST "${LOG_INGEST_URL}" \
+  -d '{"message":"installer-heartbeat","level":"info","source_type":"heartbeat"}' 2>/dev/null || echo "")
 
-if echo "$LOKI_RESP" | grep -q '"status":"success"'; then
-  if echo "$LOKI_RESP" | grep -q '"result":\[\]'; then
-    warn "Loki доступен, логи сервиса пока не пришли (нормально при старте)."
-  else
-    info "Логи доходят до Loki ✓"
-  fi
+if [ "$INGEST_RESP" = "204" ]; then
+  info "Backend ingest принимает логи ✓"
 else
-  warn "Не удалось опросить Loki по адресу ${LOKI_URL}"
+  warn "Не удалось проверить backend ingest по адресу ${LOG_INGEST_URL} (HTTP ${INGEST_RESP:-n/a})"
 fi
 
 echo ""
