@@ -1,10 +1,13 @@
 import { LOKI_URL } from '../index.js'
 import { scrapeSystem, registerIpsForPolling } from '../nodeExporter.js'
 import { getCached, setCached, invalidate } from '../cache.js'
-import { getAll, addNode, removeNode, getById, patchNodeIp, seedIfEmpty } from '../nodes-registry.js'
+import { getAll, addNode, removeNode, getById, patchNodeIp } from '../nodes-registry.js'
+import { createService, deleteMatchingServices, sanitizeService } from '../services-store.js'
+import { addLogDeletionTombstone } from '../log-deletions-store.js'
 
 const ONLINE_WINDOW  = 5 * 60
 const ERRORS_WINDOW  = '1h'
+const NODE_LOG_PATH = '/var/log/remnanode-supervisor/xray.out.log'
 
 async function lokiGet(path, params = {}) {
   const url = new URL(`${LOKI_URL}${path}`)
@@ -89,14 +92,6 @@ export default async function nodesRoute(fastify) {
     const cached = getCached('nodes')
     if (cached) return cached
 
-    // Автомиграция: при пустом реестре засеять из Loki
-    if (getAll().length === 0) {
-      const labelsData = await lokiGet('/loki/api/v1/label/node_name/values', {
-        'match[]': '{service!="remnawave-panel"}',
-      }).catch(() => ({ data: [] }))
-      seedIfEmpty(labelsData.data ?? [])
-    }
-
     const registered = getAll()
     const nodes      = await Promise.all(registered.map(getNodeInfo))
 
@@ -117,6 +112,43 @@ export default async function nodesRoute(fastify) {
     return node
   })
 
+  fastify.post('/nodes/connect', async (req, reply) => {
+    const { name, node_ip, country } = req.body ?? {}
+    const trimmedName = String(name ?? '').trim()
+    const trimmedIp = String(node_ip ?? '').trim()
+    const trimmedCountry = String(country ?? '').trim()
+
+    if (!trimmedName) {
+      reply.status(400)
+      return { error: 'name обязателен' }
+    }
+    if (!trimmedIp) {
+      reply.status(400)
+      return { error: 'node_ip обязателен' }
+    }
+
+    const node = addNode({ name: trimmedName, node_ip: trimmedIp, country: trimmedCountry })
+    const { service, token } = createService({
+      service_name: 'remnawave-node',
+      node_name: trimmedName,
+      node_ip: trimmedIp,
+      country: trimmedCountry,
+      environment: 'production',
+      source_type: 'node',
+      service_unit: '',
+      log_path: NODE_LOG_PATH,
+    })
+
+    invalidate('nodes')
+    reply.status(201)
+    return {
+      node,
+      service: sanitizeService(service),
+      token,
+      log_path: NODE_LOG_PATH,
+    }
+  })
+
   fastify.delete('/nodes/:id', async (req, reply) => {
     const { id } = req.params
     const node   = getById(id)
@@ -134,7 +166,19 @@ export default async function nodesRoute(fastify) {
     })
     await fetch(`${LOKI_URL}/loki/api/v1/delete?${query}`, { method: 'POST' }).catch(() => {})
 
+    addLogDeletionTombstone({
+      service_name: 'remnawave-node',
+      node_name: node.name,
+      source_type: 'node',
+      container: 'remnanode',
+    })
     removeNode(id)
+    deleteMatchingServices({
+      service_name: 'remnawave-node',
+      node_name: node.name,
+      source_type: 'node',
+      container: 'remnanode',
+    })
     invalidate('nodes')
     return { ok: true }
   })

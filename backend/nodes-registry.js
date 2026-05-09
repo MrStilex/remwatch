@@ -1,7 +1,8 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'fs'
-import { join } from 'path'
+import { dirname, join } from 'path'
+import { fileURLToPath } from 'url'
 
-const DIR  = './data'
+const DIR  = join(dirname(fileURLToPath(import.meta.url)), 'data')
 const FILE = join(DIR, 'nodes-registry.json')
 
 function load() {
@@ -44,10 +45,4 @@ export function patchNodeIp(id, node_ip) {
     node.node_ip = node_ip
     save(nodes)
   }
-}
-
-// При первом запуске засеять из существующих имён Loki
-export function seedIfEmpty(names) {
-  if (load().length > 0) return
-  save(names.map(name => ({ id: genId(), name, node_ip: null, country: '' })))
 }

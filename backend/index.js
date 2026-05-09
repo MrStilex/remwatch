@@ -9,6 +9,7 @@ import logsRoute      from './routes/logs.js'
 import metricsRoute   from './routes/metrics.js'
 import nodeStatsRoute from './routes/nodeStats.js'
 import dockerLogsRoute from './routes/dockerLogs.js'
+import servicesRoute from './routes/services.js'
 
 const fastify = Fastify({ logger: true })
 
@@ -40,6 +41,7 @@ fastify.register(authRoute, { prefix: '/api' })
 fastify.addHook('onRequest', async (req, reply) => {
   if (!req.url.startsWith('/api/')) return
   if (req.url.startsWith('/api/auth/')) return
+  if (req.url.startsWith('/api/logs/ingest')) return
   try {
     await req.jwtVerify()
   } catch {
@@ -50,6 +52,7 @@ fastify.addHook('onRequest', async (req, reply) => {
 
 fastify.register(nodesRoute,     { prefix: '/api' })
 fastify.register(logsRoute,      { prefix: '/api' })
+fastify.register(servicesRoute,  { prefix: '/api' })
 fastify.register(metricsRoute,   { prefix: '/api' })
 fastify.register(nodeStatsRoute, { prefix: '/api' })
 fastify.register(dockerLogsRoute, { prefix: '/api' })

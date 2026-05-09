@@ -1,4 +1,11 @@
 import { LOKI_URL } from '../index.js'
+import {
+  getAllServices,
+  clearMatchingServicesLastSeen,
+  deleteMatchingServices,
+  serviceContainerValue,
+} from '../services-store.js'
+import { addLogDeletionTombstone, findLatestMatchingTombstone } from '../log-deletions-store.js'
 
 export default async function logsRoute(fastify) {
   function lokiSelectorFromItem(item) {
@@ -11,7 +18,16 @@ export default async function logsRoute(fastify) {
     return `{${parts.join(',')}}`
   }
 
-  async function fetchLastSeenNs(item, startNs, endNs) {
+  function hasFullSourceLabels(item) {
+    return Boolean(
+      String(item.service_name ?? '').trim() &&
+      String(item.node_name ?? '').trim() &&
+      String(item.source_type ?? '').trim() &&
+      String(item.container ?? '').trim()
+    )
+  }
+
+  async function fetchLastSeenEntry(item, startNs, endNs) {
     const body = new URLSearchParams({
       query: lokiSelectorFromItem(item),
       limit: '1',
@@ -30,14 +46,27 @@ export default async function logsRoute(fastify) {
 
     const data = await res.json()
     const stream = data?.data?.result?.[0]
-    const first = stream?.values?.[0]?.[0]
-    return first ? Number(first) : null
+    const [tsNano, line] = stream?.values?.[0] ?? []
+    if (!tsNano) return null
+
+    let parsed = {}
+    try { parsed = JSON.parse(line) } catch {}
+
+    return {
+      tsNs: Number(tsNano),
+      node_ip: String(parsed?.node_ip ?? '').trim(),
+    }
   }
 
-  fastify.get('/logs/files', async (req, reply) => {
-    const { since = '24h' } = req.query
-
+  function parseSinceWindow(since) {
     const now = Math.floor(Date.now() / 1000)
+    if (since === 'all') {
+      return {
+        startSec: 1,
+        endSec: now,
+      }
+    }
+
     const hoursMatch = String(since).match(/^(\d+)h$/)
     const minutesMatch = String(since).match(/^(\d+)m$/)
     const daysMatch = String(since).match(/^(\d+)d$/)
@@ -52,8 +81,26 @@ export default async function logsRoute(fastify) {
             ? Number(weeksMatch[1]) * 7 * 86400
             : 86400
 
-    const startSec = now - offsetSec
-    const endSec = now
+    return {
+      startSec: now - offsetSec,
+      endSec: now,
+    }
+  }
+
+  function sourcePathFromService(service) {
+    if (service.source_type === 'systemd') return service.service_unit || ''
+    if (service.source_type === 'file') return service.log_path || ''
+    if (service.source_type === 'node') return service.log_path || '/var/log/remnanode-supervisor/xray.out.log'
+    return ''
+  }
+
+  function sourceContainerFromService(service) {
+    return serviceContainerValue(service)
+  }
+
+  fastify.get('/logs/files', async (req, reply) => {
+    const { since = '24h' } = req.query
+    const { startSec, endSec } = parseSinceWindow(String(since))
 
     const params = new URLSearchParams()
     params.append('match[]', '{service_name=~".+"}')
@@ -73,36 +120,89 @@ export default async function logsRoute(fastify) {
       const data = await res.json()
       const streams = Array.isArray(data?.data) ? data.data : []
 
-      const baseItems = streams
+      const lokiItems = streams
         .filter(s => (s.service_name || '').trim() !== '')
         .map(s => ({
           node_name: s.node_name ?? '',
+          node_ip: s.node_ip ?? '',
           service_name: s.service_name ?? '',
           source_type: s.source_type ?? '',
           container: s.container ?? '',
+          source_path: s.container ?? '',
           country: s.country ?? '',
           environment: s.environment ?? '',
+          binding_status: '',
+          binding_last_seen: null,
         }))
-        .sort((a, b) =>
-          (a.service_name + a.node_name + a.source_type).localeCompare(
-            b.service_name + b.node_name + b.source_type,
-            'en'
-          )
+
+      const serviceItems = getAllServices().map(service => ({
+        node_name: service.node_name ?? '',
+        node_ip: service.node_ip ?? '',
+        service_name: service.service_name ?? '',
+        source_type: service.source_type ?? '',
+        container: sourceContainerFromService(service),
+        source_path: sourcePathFromService(service),
+        country: service.country ?? '',
+        environment: service.environment ?? '',
+        binding_status: service.status ?? '',
+        binding_last_seen: service.last_seen_at ?? null,
+      }))
+
+      const merged = new Map()
+      for (const item of [...serviceItems, ...lokiItems]) {
+        const key = [
+          item.service_name || '',
+          item.node_name || '',
+          item.source_type || '',
+          item.container || '',
+        ].join('|')
+        const prev = merged.get(key)
+        merged.set(key, {
+          ...prev,
+          ...item,
+          node_ip: item.node_ip || prev?.node_ip || '',
+          source_path: item.source_path || prev?.source_path || item.container || prev?.container || '',
+          binding_status: item.binding_status || prev?.binding_status || '',
+          binding_last_seen: item.binding_last_seen || prev?.binding_last_seen || null,
+        })
+      }
+
+      const baseItems = [...merged.values()].sort((a, b) =>
+        (a.service_name + a.node_name + a.source_type + a.source_path).localeCompare(
+          b.service_name + b.node_name + b.source_type + b.source_path,
+          'en'
         )
+      )
 
       const startNs = startSec * 1e9
       const endNs = endSec * 1e9
       const items = await Promise.all(
         baseItems.map(async item => {
-          const lastSeenNs = await fetchLastSeenNs(item, startNs, endNs)
+          const lastSeenEntry = await fetchLastSeenEntry(item, startNs, endNs)
+          const lastSeenIso = lastSeenEntry?.tsNs
+            ? new Date(lastSeenEntry.tsNs / 1e6).toISOString()
+            : (item.binding_last_seen ?? null)
+          const tombstone = findLatestMatchingTombstone(item)
+          const deletedAtMs = tombstone ? Date.parse(tombstone.deleted_at) : null
+          const lastSeenMs = lastSeenIso ? Date.parse(lastSeenIso) : null
+
+          if (deletedAtMs && (!lastSeenMs || lastSeenMs <= deletedAtMs) && !item.binding_status) {
+            return null
+          }
+
           return {
             ...item,
-            last_seen: lastSeenNs ? new Date(lastSeenNs / 1e6).toISOString() : null,
+            node_ip: item.node_ip || lastSeenEntry?.node_ip || '',
+            can_delete: Boolean(String(item.service_name ?? '').trim()),
+            delete_scope: hasFullSourceLabels(item) ? 'exact' : 'service',
+            last_seen: deletedAtMs && (!lastSeenMs || lastSeenMs <= deletedAtMs)
+              ? null
+              : lastSeenIso,
           }
         })
       )
 
-      return items
+      return items.filter(Boolean)
     } catch (err) {
       const isTimeout = err?.name === 'TimeoutError' || err?.name === 'AbortError'
       reply.status(isTimeout ? 504 : 502)
@@ -120,17 +220,27 @@ export default async function logsRoute(fastify) {
     const node_name = String(payload.node_name ?? '')
     const source_type = String(payload.source_type ?? '')
     const container = String(payload.container ?? '')
-    if (!service_name) {
+    const nowSec = Math.floor(Date.now() / 1000)
+    const parsedStart = Number(payload.start)
+    const parsedEnd = Number(payload.end)
+    const endSec = Number.isFinite(parsedEnd) && parsedEnd > 0 ? Math.floor(parsedEnd) : nowSec
+    const startSec = Number.isFinite(parsedStart) && parsedStart > 0 && parsedStart < endSec
+      ? Math.floor(parsedStart)
+      : Math.max(1, endSec - 30 * 24 * 3600)
+
+    if (!service_name.trim()) {
       reply.status(400)
-      return { error: 'service_name is required', received: payload }
+      return {
+        error: 'Delete requires at least service_name',
+        received: payload,
+      }
     }
 
     const selector = lokiSelectorFromItem({ service_name, node_name, source_type, container })
-    const endNs = Date.now() * 1e6
     const params = new URLSearchParams({
       query: selector,
-      start: '0',
-      end: String(endNs),
+      start: String(startSec),
+      end: String(endSec),
     })
 
     try {
@@ -140,11 +250,16 @@ export default async function logsRoute(fastify) {
       })
 
       if (!res.ok) {
+        const details = (await res.text().catch(() => '')).trim()
         reply.status(502)
-        return { error: `Loki delete failed: ${res.status}` }
+        return { error: `Loki delete failed: ${res.status}`, details }
       }
 
-      return { ok: true }
+      const match = { service_name, node_name, source_type, container }
+      addLogDeletionTombstone(match)
+      clearMatchingServicesLastSeen(match)
+      const removedServices = deleteMatchingServices(match)
+      return { ok: true, removed_services: removedServices.length }
     } catch (err) {
       const isTimeout = err?.name === 'TimeoutError' || err?.name === 'AbortError'
       reply.status(isTimeout ? 504 : 502)
