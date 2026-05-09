@@ -1,0 +1,85 @@
+Да, эту архитектуру имеет смысл внедрять поэтапно.
+
+Цель:
+
+Vector -> remwatch backend /api/logs/ingest -> Loki
+
+вместо
+
+Vector -> Loki
+
+Этап 1. Серверный реестр сервисов
+
+- Убрать хранение сервисов из localStorage
+- Добавить backend registry services.json
+- Ввести сущность service binding:
+  - id
+  - service_name
+  - node_name
+  - node_ip
+  - country
+  - source_type
+  - service_unit
+  - log_path
+  - status
+  - token_prefix
+  - token_hash
+  - created_at
+  - revoked_at
+  - last_seen_at
+
+Этап 2. API управления сервисами
+
+- GET /api/services
+- POST /api/services
+- POST /api/services/:id/revoke
+- DELETE /api/services/:id
+
+При POST /api/services:
+- backend генерирует ingest token
+- хранит только token_hash
+- token отдается один раз в ответе
+
+Этап 3. Ingest gateway
+
+- Добавить POST /api/logs/ingest
+- Принимать запрос от Vector
+- Читать Authorization: Bearer <token>
+- Искать service binding по token_hash
+- Проверять status=active
+- Самостоятельно проставлять labels:
+  - service_name
+  - node_name
+  - country
+  - source_type
+  - container
+- Пересылать лог в Loki
+- Обновлять last_seen_at
+
+Этап 4. Агент
+
+- Заменить прямую отправку в Loki на backend ingest endpoint
+- Вместо LOKI_URL использовать:
+  - LOG_INGEST_URL
+  - SERVICE_TOKEN
+
+Этап 5. UI
+
+- Модалка "Добавить сервис" работает через backend
+- Менеджер сервисов читает backend registry
+- Удаление/revoke происходят через backend API
+- Команда установки строится на основе выданного токена
+
+Этап 6. Разделить revoke и delete
+
+- Revoke: токен отключен, старые логи остаются
+- Delete: сервис удален из registry
+- Delete logs: отдельная операция к Loki delete API
+
+Первый внедряемый срез:
+
+1. backend registry services
+2. create/list/revoke/delete services API
+3. ingest token generation
+4. /api/logs/ingest
+5. UI перевод с localStorage на backend
