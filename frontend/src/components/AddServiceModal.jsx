@@ -3,6 +3,8 @@ import shellStyles from './AddNodeModal.module.css'
 import formStyles from './AddLogsModal.module.css'
 import { copyText } from '../utils/clipboard'
 
+const API = import.meta.env.VITE_API_URL ?? '/api'
+
 export default function AddServiceModal({ onClose, onSave }) {
   const [serviceName, setServiceName] = useState('website-bot')
   const [nodeName, setNodeName] = useState('my-server')
@@ -12,11 +14,15 @@ export default function AddServiceModal({ onClose, onSave }) {
   const [serviceUnit, setServiceUnit] = useState('my-bot.service')
   const [logPath, setLogPath] = useState('/var/log/mybot/*.log')
   const [copied, setCopied] = useState(false)
+  const [created, setCreated] = useState(null)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
 
   const origin = window.location.origin
-  const lokiUrl = `http://${window.location.hostname}:3100`
+  const ingestUrl = `${origin}/api/logs/ingest`
 
   const cmd = useMemo(() => {
+    const token = created?.token || '<SERVICE_TOKEN>'
     const base = [
       `curl -fsSL ${origin}/service-agent-install.sh`,
       `| NODE_NAME="${nodeName || 'my-server'}"`,
@@ -26,12 +32,13 @@ export default function AddServiceModal({ onClose, onSave }) {
       mode === 'systemd'
         ? `SERVICE_UNIT="${serviceUnit || 'my-bot.service'}"`
         : `LOG_PATH="${logPath || '/var/log/mybot/*.log'}"`,
-      `LOKI_URL="${lokiUrl}"`,
+      `LOG_INGEST_URL="${ingestUrl}"`,
+      `SERVICE_TOKEN="${token}"`,
       `REMWATCH_URL="${origin}"`,
       `bash`,
     ]
     return base.join(' ')
-  }, [origin, lokiUrl, nodeName, nodeIp, country, serviceName, mode, serviceUnit, logPath])
+  }, [origin, ingestUrl, nodeName, nodeIp, country, serviceName, mode, serviceUnit, logPath, created])
 
   function copy() {
     copyText(cmd)
@@ -39,20 +46,34 @@ export default function AddServiceModal({ onClose, onSave }) {
     setTimeout(() => setCopied(false), 1800)
   }
 
-  function saveService() {
-    const service = {
-      id: Date.now().toString(36) + Math.random().toString(36).slice(2),
-      service_name: serviceName.trim(),
-      node_name: nodeName.trim(),
-      node_ip: nodeIp.trim(),
-      country: country.trim(),
-      mode,
-      service_unit: mode === 'systemd' ? serviceUnit.trim() : '',
-      log_path: mode === 'file' ? logPath.trim() : '',
-      created_at: new Date().toISOString(),
+  async function saveService() {
+    setSubmitting(true)
+    setError('')
+    try {
+      const payload = {
+        service_name: serviceName.trim(),
+        node_name: nodeName.trim(),
+        node_ip: nodeIp.trim(),
+        country: country.trim(),
+        source_type: mode,
+        service_unit: mode === 'systemd' ? serviceUnit.trim() : '',
+        log_path: mode === 'file' ? logPath.trim() : '',
+      }
+      const res = await fetch(`${API}/services`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`)
+      setCreated(data)
+      onSave?.(data.service)
+    } catch (err) {
+      setError(err?.message || 'Не удалось создать сервис')
+    } finally {
+      setSubmitting(false)
     }
-    onSave?.(service)
-    onClose()
   }
 
   return (
@@ -130,7 +151,7 @@ export default function AddServiceModal({ onClose, onSave }) {
           <div className={formStyles.field}>
             <label className={shellStyles.label}>
               Команда установки
-              <span className={shellStyles.hint}>выполни на сервере, где работает сервис</span>
+              <span className={shellStyles.hint}>после создания сервиса выполни на сервере, где работает сервис</span>
             </label>
             <div className={shellStyles.cmdBox}>
               <code className={shellStyles.cmd}>{cmd}</code>
@@ -140,9 +161,16 @@ export default function AddServiceModal({ onClose, onSave }) {
             </div>
           </div>
 
+          {error && <p className={shellStyles.hint} style={{ color: '#fca5a5' }}>{error}</p>}
+          {created?.token && (
+            <p className={shellStyles.hint}>Токен выдан и уже привязан к сервису. Повторно в UI он не показывается.</p>
+          )}
+
           <div className={formStyles.footer}>
-            <button type="button" className="btn-primary" onClick={saveService}>Добавить</button>
-            <button type="button" className={formStyles.cancel} onClick={onClose}>Закрыть</button>
+            <button type="button" className="btn-primary" onClick={saveService} disabled={submitting}>
+              {submitting ? 'Создаю...' : created ? 'Создано' : 'Создать сервис'}
+            </button>
+            <button type="button" className={formStyles.cancel} onClick={onClose}>{created ? 'Готово' : 'Закрыть'}</button>
           </div>
         </div>
       </div>

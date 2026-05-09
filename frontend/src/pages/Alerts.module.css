@@ -46,7 +46,7 @@
 
 .table {
   width: 100%;
-  min-width: 780px;
+  min-width: 760px;
   border-collapse: collapse;
 }
 
@@ -90,6 +90,12 @@
 .deleteBtn:disabled {
   opacity: .65;
   cursor: default;
+}
+
+.pathCell {
+  max-width: 340px;
+  word-break: break-word;
+  color: #b9c8df;
 }
 
 .viewer {

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import styles from './Alerts.module.css'
 
 const API = import.meta.env.VITE_API_URL ?? '/api'
@@ -41,10 +41,17 @@ export default function Alerts() {
     }
   }
 
+  useEffect(() => {
+    void loadSources()
+  }, [])
+
   async function deleteSource(item) {
     const key = `${item.service_name}|${item.node_name}|${item.source_type}|${item.container}`
+    const isWideDelete = item.delete_scope !== 'exact'
     const ok = window.confirm(
-      `Удалить логи источника?\nservice=${item.service_name}\nnode=${item.node_name}\nsource=${item.source_type}\ncontainer=${item.container}`
+      isWideDelete
+        ? `Удалить логи по service_name?\nservice=${item.service_name}\n\nВнимание: будут затронуты все потоки этого сервиса.`
+        : `Удалить логи источника?\nservice=${item.service_name}\nnode=${item.node_name}\nsource=${item.source_type}\ncontainer=${item.container}`
     )
     if (!ok) return
 
@@ -94,6 +101,7 @@ export default function Alerts() {
           <option value="6h">6h</option>
           <option value="24h">24h</option>
           <option value="7d">7d</option>
+          <option value="all">All</option>
         </select>
         <button className="btn-primary" type="button" onClick={loadSources} disabled={loading}>
           {loading ? 'Загрузка...' : 'Показать'}
@@ -109,10 +117,11 @@ export default function Alerts() {
             <tr>
               <th>Service</th>
               <th>Node</th>
-              <th>Source</th>
-              <th>Container / Unit</th>
+              <th>IP</th>
+              <th>Type</th>
+              <th>Файл / Unit</th>
               <th>Last Update</th>
-              <th>Country</th>
+              <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -121,10 +130,11 @@ export default function Alerts() {
               <tr key={`${item.service_name}-${item.node_name}-${item.container}-${idx}`}>
                 <td>{item.service_name || '—'}</td>
                 <td>{item.node_name || '—'}</td>
+                <td>{item.node_ip || '—'}</td>
                 <td>{item.source_type || '—'}</td>
-                <td>{item.container || '—'}</td>
+                <td className={styles.pathCell}>{item.source_path || item.container || '—'}</td>
                 <td>{fmtTs(item.last_seen)}</td>
-                <td>{item.country || '—'}</td>
+                <td>{item.binding_status || (item.last_seen ? 'active' : 'discovered')}</td>
                 <td>
                   <button
                     className={styles.deleteBtn}
@@ -139,7 +149,7 @@ export default function Alerts() {
             ))}
             {!loading && items.length === 0 && (
               <tr>
-                <td colSpan="7" className={styles.empty}>Нет источников в выбранном интервале.</td>
+                <td colSpan="8" className={styles.empty}>Нет лог-источников.</td>
               </tr>
             )}
           </tbody>

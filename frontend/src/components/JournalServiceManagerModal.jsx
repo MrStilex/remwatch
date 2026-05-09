@@ -1,23 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import AddServiceModal from './AddServiceModal'
 import shellStyles from './AddNodeModal.module.css'
 import styles from './JournalServiceManagerModal.module.css'
 import { copyText } from '../utils/clipboard'
 
-const STORAGE_KEY = 'rw_journal_services'
-
-function loadServices() {
-  try {
-    const v = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
-    return Array.isArray(v) ? v : []
-  } catch {
-    return []
-  }
-}
-
-function saveServices(list) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(list))
-}
+const API = import.meta.env.VITE_API_URL ?? '/api'
 
 function uninstallCmd() {
   return [
@@ -31,9 +18,10 @@ function lokiDeleteCmd(serviceName) {
 }
 
 export default function JournalServiceManagerModal({ onClose }) {
-  const [services, setServices] = useState(loadServices)
+  const [services, setServices] = useState([])
   const [showAdd, setShowAdd] = useState(false)
   const [selected, setSelected] = useState(null)
+  const [error, setError] = useState('')
   const hasRows = services.length > 0
 
   const sorted = useMemo(
@@ -41,17 +29,49 @@ export default function JournalServiceManagerModal({ onClose }) {
     [services]
   )
 
-  function addService(service) {
-    const next = [...services, service]
-    setServices(next)
-    saveServices(next)
+  async function loadServices() {
+    setError('')
+    try {
+      const res = await fetch(`${API}/services`, { credentials: 'include' })
+      const data = await res.json().catch(() => [])
+      if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`)
+      setServices(Array.isArray(data) ? data : [])
+    } catch (err) {
+      setError(err?.message || 'Не удалось загрузить сервисы')
+      setServices([])
+    }
   }
 
-  function removeService(id) {
-    const next = services.filter(s => s.id !== id)
-    setServices(next)
-    saveServices(next)
+  async function addService() {
+    await loadServices()
+  }
+
+  async function removeService(id) {
+    const res = await fetch(`${API}/services/${id}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    })
+    if (!res.ok) return
+    await loadServices()
     setSelected(null)
+  }
+
+  useEffect(() => {
+    void loadServices()
+  }, [])
+
+  function fmtTs(value) {
+    if (!value) return '—'
+    try {
+      return new Date(value).toLocaleString('ru-RU')
+    } catch {
+      return value
+    }
+  }
+
+  function statusLabel(service) {
+    if (service.status === 'revoked') return 'Revoked'
+    return service.last_seen_at ? 'Active' : 'Waiting'
   }
 
   return (
@@ -64,9 +84,11 @@ export default function JournalServiceManagerModal({ onClose }) {
 
         <div className={styles.body}>
           <div className={styles.topBar}>
-            <p className={styles.muted}>Здесь сохраняются добавленные сервисы Journal.</p>
+            <p className={styles.muted}>Сервисы хранятся на backend. Токен и ingest-контур привязываются к этой записи.</p>
             <button className="btn-primary" onClick={() => setShowAdd(true)}>+ Добавить</button>
           </div>
+
+          {error && <p className={styles.muted} style={{ color: '#fca5a5' }}>{error}</p>}
 
           <div className={styles.tableWrap}>
             <table className={styles.table}>
@@ -75,6 +97,8 @@ export default function JournalServiceManagerModal({ onClose }) {
                   <th>Service</th>
                   <th>Node</th>
                   <th>Источник</th>
+                  <th>Статус</th>
+                  <th>Last Seen</th>
                   <th>Создан</th>
                   <th></th>
                 </tr>
@@ -84,15 +108,17 @@ export default function JournalServiceManagerModal({ onClose }) {
                   <tr key={s.id}>
                     <td>{s.service_name}</td>
                     <td>{s.node_name || '—'} <span className={styles.dim}>{s.node_ip || ''}</span></td>
-                    <td>{s.mode === 'systemd' ? s.service_unit : s.log_path}</td>
-                    <td>{new Date(s.created_at).toLocaleString('ru-RU')}</td>
+                    <td>{s.source_type === 'systemd' ? s.service_unit : s.log_path}</td>
+                    <td>{statusLabel(s)}</td>
+                    <td>{fmtTs(s.last_seen_at)}</td>
+                    <td>{fmtTs(s.created_at)}</td>
                     <td className={styles.actions}>
                       <button className={styles.trashBtn} onClick={() => setSelected(s)} title="Удалить сервис">🗑</button>
                     </td>
                   </tr>
                 )) : (
                   <tr>
-                    <td colSpan="5" className={styles.empty}>Сервисов пока нет.</td>
+                    <td colSpan="7" className={styles.empty}>Сервисов пока нет.</td>
                   </tr>
                 )}
               </tbody>
@@ -103,7 +129,7 @@ export default function JournalServiceManagerModal({ onClose }) {
             <div className={styles.removeBox}>
               <p><strong>Удалить сервис:</strong> {selected.service_name}</p>
               <p className={styles.muted}>
-                Удаление здесь удаляет сервис из списка в UI. Логи в Loki и агент на сервере удаляются отдельными командами.
+                Удаление здесь отключает серверную привязку сервиса. Агент на сервере и старые логи в Loki удаляются отдельными командами.
               </p>
 
               <div className={styles.cmdLine}>

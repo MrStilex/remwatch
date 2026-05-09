@@ -30,18 +30,25 @@ export default function AddNodeModal({ onClose, onAdded }) {
   const [saving,   setSaving]   = useState(false)
   const [error,    setError]    = useState('')
   const [done,     setDone]     = useState(false)
+  const [created,  setCreated]  = useState(null)
 
   const origin  = window.location.origin
-  const lokiUrl = `http://${window.location.hostname}:3100`
+  const ingestUrl = `${origin}/api/logs/ingest`
 
   const cmd = [
-    `curl -fsSL ${origin}/agent-install.sh`,
+    `curl -fsSL ${origin}/node-agent-install.sh`,
     `| NODE_NAME="${nodeName || 'my-server'}"`,
     `NODE_IP="${nodeIp || '1.2.3.4'}"`,
     `COUNTRY="${country || 'XX'}"`,
-    `LOKI_URL="${lokiUrl}"`,
+    `SERVICE_TOKEN="${created?.token || '<SERVICE_TOKEN>'}"`,
+    `LOG_INGEST_URL="${ingestUrl}"`,
     `REMWATCH_URL="${origin}"`,
     `bash`,
+  ].join(' ')
+
+  const uninstallCmd = [
+    `curl -fsSL ${origin}/node-agent-uninstall.sh`,
+    '| bash',
   ].join(' ')
 
   async function submit(e) {
@@ -51,16 +58,18 @@ export default function AddNodeModal({ onClose, onAdded }) {
     setSaving(true)
     setError('')
     try {
-      const res = await fetch(`${API}/nodes`, {
+      const connectRes = await fetch(`${API}/nodes/connect`, {
         method:      'POST',
         credentials: 'include',
         headers:     { 'Content-Type': 'application/json' },
         body:        JSON.stringify({ name: nodeName.trim(), node_ip: nodeIp.trim(), country: country.trim() }),
       })
-      if (!res.ok) {
-        const d = await res.json().catch(() => ({}))
-        throw new Error(d.error || `HTTP ${res.status}`)
+      if (!connectRes.ok) {
+        const d = await connectRes.json().catch(() => ({}))
+        throw new Error(d.error || `HTTP ${connectRes.status}`)
       }
+      const connectData = await connectRes.json()
+      setCreated(connectData)
       setDone(true)
       onAdded?.()
     } catch (e) {
@@ -152,10 +161,19 @@ export default function AddNodeModal({ onClose, onAdded }) {
                 <div className={styles.step}>
                   <div className={styles.stepHeader}>
                     <span className={styles.stepNum}>2</span>
-                    <span className={styles.stepTitle}>Установи агент мониторинга</span>
+                    <span className={styles.stepTitle}>Установи нодовый агент</span>
                   </div>
-                  <p className={styles.stepDesc}>Запусти команду на сервере:</p>
+                  <p className={styles.stepDesc}>Запусти команду на сервере. Агент встанет в <code>/opt/remwatch-node-agent</code> и будет писать через backend ingest.</p>
                   <CmdLine text={cmd} />
+                </div>
+
+                <div className={styles.step}>
+                  <div className={styles.stepHeader}>
+                    <span className={styles.stepNum}>3</span>
+                    <span className={styles.stepTitle}>Удаление агента</span>
+                  </div>
+                  <p className={styles.stepDesc}>Если понадобится отключить ноду, выполни на сервере:</p>
+                  <CmdLine text={uninstallCmd} />
                 </div>
 
               </div>
