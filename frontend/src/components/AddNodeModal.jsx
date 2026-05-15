@@ -33,15 +33,14 @@ export default function AddNodeModal({ onClose, onAdded, initialNode = null }) {
   const [created,  setCreated]  = useState(null)
 
   const origin  = window.location.origin
-  const ingestUrl = `${origin}/api/logs/ingest`
+  const lokiUrl = `http://${window.location.hostname}:3100`
 
   const cmd = [
     `curl -fsSL ${origin}/node-agent-install.sh`,
     `| NODE_NAME="${nodeName || 'my-server'}"`,
     `NODE_IP="${nodeIp || '1.2.3.4'}"`,
     `COUNTRY="${country || 'XX'}"`,
-    `SERVICE_TOKEN="${created?.token || '<SERVICE_TOKEN>'}"`,
-    `LOG_INGEST_URL="${ingestUrl}"`,
+    `LOKI_URL="${lokiUrl}"`,
     `REMWATCH_URL="${origin}"`,
     `bash`,
   ].join(' ')
