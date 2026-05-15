@@ -8,8 +8,10 @@ import nodesRoute     from './routes/nodes.js'
 import logsRoute      from './routes/logs.js'
 import metricsRoute   from './routes/metrics.js'
 import nodeStatsRoute from './routes/nodeStats.js'
+import nodeRulesRoute from './routes/nodeRules.js'
 import dockerLogsRoute from './routes/dockerLogs.js'
 import servicesRoute from './routes/services.js'
+import parsersRoute from './routes/parsers.js'
 
 const fastify = Fastify({ logger: true })
 
@@ -53,8 +55,10 @@ fastify.addHook('onRequest', async (req, reply) => {
 fastify.register(nodesRoute,     { prefix: '/api' })
 fastify.register(logsRoute,      { prefix: '/api' })
 fastify.register(servicesRoute,  { prefix: '/api' })
+fastify.register(parsersRoute,   { prefix: '/api' })
 fastify.register(metricsRoute,   { prefix: '/api' })
 fastify.register(nodeStatsRoute, { prefix: '/api' })
+fastify.register(nodeRulesRoute, { prefix: '/api' })
 fastify.register(dockerLogsRoute, { prefix: '/api' })
 
 fastify.get('/health', async () => ({ ok: true }))

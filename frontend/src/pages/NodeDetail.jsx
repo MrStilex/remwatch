@@ -103,11 +103,20 @@ function ErrorLogsModal({ node, errorType, label, hours, onClose }) {
 export default function NodeDetail() {
   const { name } = useParams()
   const navigate = useNavigate()
-  const [hours, setHours]   = useState(24)
-  const [data, setData]     = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError]   = useState(null)
-  const [errorModal, setErrorModal] = useState(null) // { errorType, label }
+  const [hours, setHours]       = useState(24)
+  const [data, setData]         = useState(null)
+  const [loading, setLoading]   = useState(true)
+  const [error, setError]       = useState(null)
+  const [errorModal, setErrorModal] = useState(null)
+
+  // правила мониторинга
+  const [rules, setRules]           = useState(null) // null = загружается
+  const [ruleCounts, setRuleCounts] = useState({})
+  const [showForm, setShowForm]     = useState(false)
+  const [ruleName, setRuleName]     = useState('')
+  const [ruleKw, setRuleKw]         = useState('')
+  const [ruleErr, setRuleErr]       = useState('')
+  const [ruleSaving, setRuleSaving] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -123,7 +132,46 @@ export default function NodeDetail() {
     }
   }, [name, hours])
 
+  const loadRules = useCallback(async () => {
+    try {
+      const res = await fetch(`${API}/node-rules?node=${encodeURIComponent(name)}&hours=${hours}`, { credentials: 'include' })
+      if (!res.ok) return
+      const d = await res.json()
+      setRules(d.rules ?? [])
+      setRuleCounts(d.counts ?? {})
+    } catch {}
+  }, [name, hours])
+
+  async function addRule(e) {
+    e.preventDefault()
+    if (!ruleName.trim()) { setRuleErr('Введи название'); return }
+    if (!ruleKw.trim())   { setRuleErr('Введи ключевые слова'); return }
+    setRuleSaving(true); setRuleErr('')
+    try {
+      const res = await fetch(`${API}/node-rules?node=${encodeURIComponent(name)}`, {
+        method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: ruleName.trim(), keywords: ruleKw }),
+      })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      setRuleName(''); setRuleKw(''); setShowForm(false)
+      await loadRules()
+    } catch (err) {
+      setRuleErr(err.message)
+    } finally {
+      setRuleSaving(false)
+    }
+  }
+
+  async function deleteRule(ruleId) {
+    await fetch(`${API}/node-rules?node=${encodeURIComponent(name)}&ruleId=${ruleId}`, {
+      method: 'DELETE', credentials: 'include',
+    })
+    await loadRules()
+  }
+
   useEffect(() => { load() }, [load])
+  useEffect(() => { loadRules() }, [loadRules])
 
   // ── ECharts options ──────────────────────────────────────────────────────
 
@@ -350,6 +398,78 @@ export default function NodeDetail() {
           onClose={() => setErrorModal(null)}
         />
       )}
+
+      {/* ── Мониторинг логов ────────────────────────────────────────────── */}
+      <div className={styles.rulesSection}>
+        <div className={styles.rulesSectionHeader}>
+          <span className={styles.rulesSectionTitle}>Мониторинг логов</span>
+          {rules?.length > 0 && !showForm && (
+            <button className={styles.addRuleBtn} onClick={() => setShowForm(true)}>+ Добавить</button>
+          )}
+        </div>
+
+        {rules === null && <p className={styles.hint}>Загрузка...</p>}
+
+        {rules?.length === 0 && !showForm && (
+          <div className={styles.emptyRules}>
+            <div className={styles.emptyRulesIcon}>📋</div>
+            <p className={styles.emptyRulesTitle}>Настрой мониторинг логов</p>
+            <p className={styles.emptyRulesHint}>
+              Добавь правило — укажи название и ключевые слова.<br />
+              Система будет считать совпадения в логах ноды за выбранный период.
+            </p>
+            <button className="btn-primary" onClick={() => setShowForm(true)}>+ Добавить правило</button>
+          </div>
+        )}
+
+        {rules?.length > 0 && (
+          <div className={styles.ruleCards}>
+            {rules.map(r => (
+              <div key={r.id} className={styles.ruleCard}>
+                <div className={styles.ruleCardTop}>
+                  <span className={styles.ruleCardCount}>{(ruleCounts[r.id] ?? 0).toLocaleString()}</span>
+                  <button className={styles.ruleCardDel} onClick={() => deleteRule(r.id)} title="Удалить правило">✕</button>
+                </div>
+                <span className={styles.ruleCardName}>{r.name}</span>
+                <span className={styles.ruleCardKw}>{r.keywords.join(', ')}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {showForm && (
+          <form className={styles.ruleForm} onSubmit={addRule}>
+            <div className={styles.ruleFormFields}>
+              <div className={styles.ruleFormField}>
+                <label className={styles.ruleFormLabel}>Название</label>
+                <input
+                  className={styles.ruleFormInput}
+                  placeholder="Таймауты"
+                  value={ruleName}
+                  onChange={e => setRuleName(e.target.value)}
+                  autoFocus
+                />
+              </div>
+              <div className={styles.ruleFormField}>
+                <label className={styles.ruleFormLabel}>Ключевые слова <span className={styles.ruleFormHint}>через запятую</span></label>
+                <input
+                  className={styles.ruleFormInput}
+                  placeholder="timeout, i/o timeout, timed out"
+                  value={ruleKw}
+                  onChange={e => setRuleKw(e.target.value)}
+                />
+              </div>
+            </div>
+            {ruleErr && <p className={styles.ruleFormErr}>{ruleErr}</p>}
+            <div className={styles.ruleFormActions}>
+              <button type="button" className={styles.ruleFormCancel} onClick={() => { setShowForm(false); setRuleErr('') }}>Отмена</button>
+              <button type="submit" className="btn-primary" disabled={ruleSaving}>
+                {ruleSaving ? 'Сохраняю...' : 'Сохранить'}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
     </main>
   )
 }

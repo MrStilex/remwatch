@@ -7,10 +7,7 @@ import { copyText } from '../utils/clipboard'
 const API = import.meta.env.VITE_API_URL ?? '/api'
 
 function uninstallCmd() {
-  return [
-    'docker rm -f remwatch-vector remwatch-node-exporter 2>/dev/null || true',
-    'rm -rf docker-compose.yml .env vector',
-  ].join(' && ')
+  return `curl -fsSL ${window.location.origin}/service-agent-uninstall.sh | bash`
 }
 
 function lokiDeleteCmd(serviceName) {
@@ -85,7 +82,9 @@ export default function JournalServiceManagerModal({ onClose }) {
         <div className={styles.body}>
           <div className={styles.topBar}>
             <p className={styles.muted}>Сервисы хранятся на backend. Токен и ingest-контур привязываются к этой записи.</p>
-            <button className="btn-primary" onClick={() => setShowAdd(true)}>+ Добавить</button>
+            <div className={styles.topActions}>
+              <button className="btn-primary" onClick={() => setShowAdd(true)}>+ Добавить</button>
+            </div>
           </div>
 
           {error && <p className={styles.muted} style={{ color: '#fca5a5' }}>{error}</p>}

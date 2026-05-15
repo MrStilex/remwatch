@@ -46,3 +46,29 @@ export function patchNodeIp(id, node_ip) {
     save(nodes)
   }
 }
+
+export function getByName(name) {
+  return load().find(n => n.name === name) ?? null
+}
+
+export function getRules(id) {
+  return load().find(n => n.id === id)?.log_rules ?? []
+}
+
+export function addRule(id, { name, keywords }) {
+  const nodes = load()
+  const node  = nodes.find(n => n.id === id)
+  if (!node) return null
+  const rule = { id: genId(), name, keywords }
+  node.log_rules = [...(node.log_rules ?? []), rule]
+  save(nodes)
+  return rule
+}
+
+export function removeRule(nodeId, ruleId) {
+  const nodes = load()
+  const node  = nodes.find(n => n.id === nodeId)
+  if (!node) return
+  node.log_rules = (node.log_rules ?? []).filter(r => r.id !== ruleId)
+  save(nodes)
+}
