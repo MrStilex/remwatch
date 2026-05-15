@@ -23,9 +23,9 @@ transforms:
       .node_ip     = get_env_var!("NODE_IP")
       .country     = get_env_var!("COUNTRY")
       .environment = get_env_var!("ENVIRONMENT")
-      .service_name = "remnawave-node"
-      .source_type = "node"
-      .container   = "remnanode"
+      .service     = "remnawave-node"
+      .log_type    = "xray_out"
+      .container   = "remnawave-node"
 
       msg = downcase(string!(.message))
 
@@ -59,8 +59,6 @@ transforms:
         .error_type = "none"
       }
 
-      .level = "error"
-
   keep_useful_xray:
     type: filter
     inputs: ["parse_and_tag"]
@@ -75,20 +73,27 @@ transforms:
       .node_ip     = get_env_var!("NODE_IP")
       .country     = get_env_var!("COUNTRY")
       .environment = get_env_var!("ENVIRONMENT")
-      .service_name = "remnawave-node"
-      .source_type = "node"
-      .container   = "remnanode"
+      .service     = "remnawave-node"
+      .log_type    = "heartbeat"
+      .container   = "remnawave-node"
       .error_type  = "heartbeat"
-      .level       = "info"
       .message     = "heartbeat"
 
 sinks:
-  ingest_out:
-    type: http
+  loki_out:
+    type: loki
     inputs: ["keep_useful_xray", "tag_heartbeat"]
-    uri: "${LOG_INGEST_URL}"
-    method: post
+    endpoint: "${LOKI_URL}"
+    compression: gzip
     encoding:
       codec: json
-    headers:
-      Authorization: "Bearer ${SERVICE_TOKEN}"
+    healthcheck:
+      enabled: false
+    labels:
+      node_name:   "{{ node_name }}"
+      country:     "{{ country }}"
+      service:     "{{ service }}"
+      log_type:    "{{ log_type }}"
+      environment: "{{ environment }}"
+      container:   "{{ container }}"
+      error_type:  "{{ error_type }}"
