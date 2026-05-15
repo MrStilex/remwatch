@@ -23,13 +23,13 @@ function CmdLine({ text }) {
   )
 }
 
-export default function AddNodeModal({ onClose, onAdded }) {
-  const [nodeName, setNodeName] = useState('')
-  const [nodeIp,   setNodeIp]   = useState('')
-  const [country,  setCountry]  = useState('')
+export default function AddNodeModal({ onClose, onAdded, initialNode = null }) {
+  const [nodeName, setNodeName] = useState(initialNode?.name ?? '')
+  const [nodeIp,   setNodeIp]   = useState(initialNode?.node_ip ?? '')
+  const [country,  setCountry]  = useState(initialNode?.country ?? '')
   const [saving,   setSaving]   = useState(false)
   const [error,    setError]    = useState('')
-  const [done,     setDone]     = useState(false)
+  const [done,     setDone]     = useState(!!initialNode)
   const [created,  setCreated]  = useState(null)
 
   const origin  = window.location.origin

@@ -250,6 +250,28 @@
   white-space: nowrap;
 }
 
+.rowActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.cmdBtn {
+  background: none;
+  border: 1px solid #1e2736;
+  border-radius: 4px;
+  color: #4b5563;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 3px 8px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.cmdBtn:hover {
+  color: #00f59b;
+  border-color: #00f59b;
+}
+
 .deleteBtn {
   background: none;
   border: none;

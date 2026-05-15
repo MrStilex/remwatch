@@ -98,6 +98,7 @@ export default function Nodes() {
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState(null)
   const [deleting, setDeleting] = useState(null)
+  const [cmdNode,  setCmdNode]  = useState(null)
   const [sortCol, setSortCol] = useState(null)
   const [sortDir, setSortDir] = useState('asc')
   const [visible, setVisible] = useState(loadVisible)
@@ -264,7 +265,12 @@ export default function Nodes() {
                     {visible.net_tx    && <td className={styles.net}>{fmtBps(n.net_tx_bps)}</td>}
                     {visible.errors    && <td className={n.errors_1h > 0 ? styles.errCount : ''}>{n.errors_1h}</td>}
                     {visible.last_seen && <td className={styles.mono}>{timeSince(n.last_seen)}</td>}
-                    <td>
+                    <td className={styles.rowActions}>
+                      <button
+                        className={styles.cmdBtn}
+                        onClick={() => setCmdNode(n)}
+                        title="Команды установки"
+                      >Команды</button>
                       <button
                         className={styles.deleteBtn}
                         onClick={() => deleteNode(n)}
@@ -284,6 +290,13 @@ export default function Nodes() {
         <AddNodeModal
           onClose={() => setShowModal(false)}
           onAdded={load}
+        />
+      )}
+
+      {cmdNode && (
+        <AddNodeModal
+          onClose={() => setCmdNode(null)}
+          initialNode={cmdNode}
         />
       )}
     </main>
